@@ -7,7 +7,7 @@
 	<version>1.0</version>
 	<packaging>jar</packaging>
 
-	<name>Zodiac Scorpio Executor Node</name>
+	<name>Zodiac Taurus Web Interface</name>
 
 	<properties>
 		<jdk.version>1.8</jdk.version>
