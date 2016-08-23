@@ -21,10 +21,10 @@
         <other></other>
         <glyph alt="Node" width="36" height="36" type="png"></glyph>
     </modelIdentification>
+	
     <objects>
         <objectClass>
             <name>HLAobjectRoot</name>
-		
             <objectClass>
                 <name>Scorpio</name>
                 <sharing>PublishSubscribe</sharing>
@@ -125,12 +125,9 @@
                     <order>Receive</order>
                     <semantics>Free memory.</semantics>
                 </attribute>
-            </objectClass>
-			
+            </objectClass>			
         </objectClass>
     </objects>
-	
-    <interactions /></interactions>
 	
     <switches>
         <autoProvide isEnabled="true"/>
@@ -190,7 +187,6 @@
         <arrayDataTypes/>
         <fixedRecordDataTypes/>
         <variantRecordDataTypes/>
-		
     </dataTypes>
 
 </objectModel>

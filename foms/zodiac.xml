@@ -22,73 +22,11 @@
         <glyph alt="Node" width="36" height="36" type="png"></glyph>
     </modelIdentification>
 	
-    <objects></objects>
-	
-    <interactions>
-        <interactionClass>
-            <name>HLAinteractionRoot</name>
-			
-            <interactionClass>
-                <name>RunInstance</name>
-                <sharing>PublishSubscribe</sharing>
-                <dimensions/>
-                <transportation>HLAreliable</transportation>
-                <order>Receive</order>
-                <semantics>Command a Core to Run an Istance</semantics>
-                <parameter>
-                    <name>InstanceContent</name>
-                    <dataType>HLAunicodeString</dataType>
-                    <semantics>The Hex String representing the compressed Instance</semantics>
-                </parameter>
-                <parameter>
-                    <name>CoreSerialNumber</name>
-                    <dataType>HLAunicodeString</dataType>
-                    <semantics>The serial number of core to run this Instance</semantics>
-                </parameter>
-            </interactionClass>
-
-            <interactionClass>
-                <name>FinishedInstance</name>
-                <sharing>PublishSubscribe</sharing>
-                <dimensions/>
-                <transportation>HLAreliable</transportation>
-                <order>Receive</order>
-                <semantics>Notify Federation of and Instance end</semantics>
-                <parameter>
-                    <name>InstanceSerial</name>
-                    <dataType>HLAunicodeString</dataType>
-                    <semantics>The String representing the Instance serial number</semantics>
-                </parameter>
-                <parameter>
-                    <name>CoreSerialNumber</name>
-                    <dataType>HLAunicodeString</dataType>
-                    <semantics>The serial number of core that was worked this Instance</semantics>
-                </parameter>
-            </interactionClass>
-			
-			
-            <interactionClass>
-                <name>RequestTask</name>
-                <sharing>PublishSubscribe</sharing>
-                <dimensions/>
-                <transportation>HLAreliable</transportation>
-                <order>Receive</order>
-                <semantics>Request an Instance from Sagitarii</semantics>
-                <parameter>
-                    <name>CoreSerialNumber</name>
-                    <dataType>HLAunicodeString</dataType>
-                    <semantics>The serial number of core requesting the Instance</semantics>
-                </parameter>
-                <parameter>
-                    <name>TaskType</name>
-                    <dataType>HLAunicodeString</dataType>
-                    <semantics>The type of the node requasting task. Can be teapot or nunki (lowercase).</semantics>
-                </parameter>
-            </interactionClass>
-			
-			
-        </interactionClass>
-    </interactions>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+        </objectClass>
+    </objects>
 	
     <switches>
         <autoProvide isEnabled="true"/>
@@ -104,8 +42,8 @@
         <automaticResignAction resignAction="CancelThenDeleteThenDivest"/>
     </switches>
 	
-    <dataTypes />
-        <simpleDataTypes />
+    <dataTypes>
+        <simpleDataTypes/>
         <enumeratedDataTypes/>
         <arrayDataTypes/>
         <fixedRecordDataTypes/>

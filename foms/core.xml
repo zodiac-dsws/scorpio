@@ -21,6 +21,7 @@
         <other />
         <glyph alt="Node" width="36" height="36" type="png"></glyph>
     </modelIdentification>
+	
     <objects>
         <objectClass>
             <name>HLAobjectRoot</name>
@@ -166,8 +167,6 @@
         </objectClass>
     </objects>
 	
-    <interactions />
-	
     <switches>
         <autoProvide isEnabled="true"/>
         <conveyRegionDesignatorSets isEnabled="false"/>
@@ -183,45 +182,7 @@
     </switches>
 	
     <dataTypes>
-        <simpleDataTypes>
-		
-            <simpleData>
-                <name>FreeMemory</name>
-                <representation>HLAinteger64BE</representation>
-                <units>Bytes</units>
-                <resolution>1</resolution>
-                <accuracy>1</accuracy>
-                <semantics>Integer to describe free RAM memory.</semantics>
-            </simpleData>
-
-            <simpleData>
-                <name>TotalMemory</name>
-                <representation>HLAinteger64BE</representation>
-                <units>Bytes</units>
-                <resolution>1</resolution>
-                <accuracy>1</accuracy>
-                <semantics>Integer to describe total RAM memory.</semantics>
-            </simpleData>
-			
-            <simpleData>
-                <name>CoresAvailable</name>
-                <representation>HLAinteger16BE</representation>
-                <units>Units</units>
-                <resolution>1</resolution>
-                <accuracy>1</accuracy>
-                <semantics>Integer to describe cores available.</semantics>
-            </simpleData>
-
-            <simpleData>
-                <name>CpuLoad</name>
-                <representation>HLAfloat32BE</representation>
-                <units>Percents</units>
-                <resolution>0.001</resolution>
-                <accuracy>0.001</accuracy>
-                <semantics>CPU Load.</semantics>
-            </simpleData>
-        </simpleDataTypes>
-		
+        <simpleDataTypes/>
         <enumeratedDataTypes/>
         <arrayDataTypes/>
         <fixedRecordDataTypes/>
