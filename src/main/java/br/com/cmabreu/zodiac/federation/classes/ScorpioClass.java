@@ -3,7 +3,7 @@ package br.com.cmabreu.zodiac.federation.classes;
 
 import br.com.cmabreu.zodiac.federation.EncoderDecoder;
 import br.com.cmabreu.zodiac.federation.RTIAmbassadorProvider;
-import br.com.cmabreu.zodiac.federation.objects.TeapotObject;
+import br.com.cmabreu.zodiac.federation.objects.ScorpioObject;
 import br.com.cmabreu.zodiac.scorpio.Logger;
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
@@ -17,7 +17,7 @@ import hla.rti1516e.encoding.HLAinteger64BE;
 import hla.rti1516e.encoding.HLAunicodeString;
 import hla.rti1516e.exceptions.RTIexception;
 
-public class TeapotClass {
+public class ScorpioClass {
 	private ObjectClassHandle classHandle;
 	private RTIambassador rtiamb;
 	
@@ -33,10 +33,10 @@ public class TeapotClass {
 	private AttributeHandleSet attributes;
 	
 	private EncoderDecoder encodec;	
-	private TeapotObject teapot;
+	private ScorpioObject scorpio;
 
-	public TeapotObject getTeapot() {
-		return teapot;
+	public ScorpioObject getTeapot() {
+		return scorpio;
 	}
 	
 	private void debug( String s ) {
@@ -44,15 +44,15 @@ public class TeapotClass {
 	}	
 	
 	public boolean objectExists( ObjectInstanceHandle objHandle ) {
-		return teapot.isMe( objHandle );
+		return scorpio.isMe( objHandle );
 	}
 	
-	public TeapotObject createNew() throws Exception {
-		debug("creating new Teapot Object instance");
-		ObjectInstanceHandle handle = rtiamb.registerObjectInstance( classHandle, "Teapot Node" );
-		teapot = new TeapotObject( handle );
-		firstUpdateAllAttributeValues( teapot );
-		return teapot;
+	public ScorpioObject createNew() throws Exception {
+		debug("creating new Scorpio Object instance");
+		ObjectInstanceHandle handle = rtiamb.registerObjectInstance( classHandle, "Scorpio Node" );
+		scorpio = new ScorpioObject( handle );
+		firstUpdateAllAttributeValues( scorpio );
+		return scorpio;
 	}	
 	
 	
@@ -64,9 +64,9 @@ public class TeapotClass {
 		return theObjectClass.equals( classHandle );
 	}
 	
-	public TeapotClass( ) throws Exception {
+	public ScorpioClass( ) throws Exception {
 		rtiamb = RTIAmbassadorProvider.getInstance().getRTIAmbassador();
-		this.classHandle = rtiamb.getObjectClassHandle( "HLAobjectRoot.Teapot" );
+		this.classHandle = rtiamb.getObjectClassHandle( "HLAobjectRoot.Scorpio" );
 		
 		this.macAddressHandle = rtiamb.getAttributeHandle( classHandle, "MACAddress" );
 		this.soNameHandle = rtiamb.getAttributeHandle( classHandle, "SOName" );
@@ -90,7 +90,7 @@ public class TeapotClass {
 		encodec = new EncoderDecoder();	
 	}
 
-	private void firstUpdateAllAttributeValues( TeapotObject object ) throws RTIexception {
+	private void firstUpdateAllAttributeValues( ScorpioObject object ) throws RTIexception {
 		debug("updating all attributes for first time");
 
 		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create(8);
@@ -118,15 +118,15 @@ public class TeapotClass {
 
 	// Just need to update attributes that changes
 	public void updateAttributeValues( ) throws RTIexception {
-		teapot.updateValues();
+		scorpio.updateValues();
 		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create(3);
-		HLAfloat64BE cpuLoadValue = encodec.createHLAfloat64BE( teapot.getCpuLoad() );
-		HLAinteger64BE totalMemoryValue = encodec.createHLAinteger64BE( teapot.getTotalMemory() );
-		HLAinteger64BE freeMemoryValue = encodec.createHLAinteger64BE( teapot.getFreeMemory() );
+		HLAfloat64BE cpuLoadValue = encodec.createHLAfloat64BE( scorpio.getCpuLoad() );
+		HLAinteger64BE totalMemoryValue = encodec.createHLAinteger64BE( scorpio.getTotalMemory() );
+		HLAinteger64BE freeMemoryValue = encodec.createHLAinteger64BE( scorpio.getFreeMemory() );
 		attributes.put( cpuLoadHandle, cpuLoadValue.toByteArray() );
 		attributes.put( totalMemoryHandle, totalMemoryValue.toByteArray() );
 		attributes.put( freeMemoryHandle, freeMemoryValue.toByteArray() );
-		rtiamb.updateAttributeValues( teapot.getHandle(), attributes, "Teapot Attributes".getBytes() );
+		rtiamb.updateAttributeValues( scorpio.getHandle(), attributes, "Teapot Attributes".getBytes() );
 	}	
 	
 	public void publish() throws RTIexception {

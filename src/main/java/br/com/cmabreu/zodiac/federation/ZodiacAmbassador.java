@@ -1,6 +1,6 @@
 package br.com.cmabreu.zodiac.federation;
 
-import br.com.cmabreu.zodiac.federation.federates.TeapotFederate;
+import br.com.cmabreu.zodiac.federation.federates.ScorpioFederate;
 import br.com.cmabreu.zodiac.scorpio.Logger;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;
@@ -14,7 +14,7 @@ import hla.rti1516e.TransportationTypeHandle;
 import hla.rti1516e.exceptions.FederateInternalError;
 
 
-public class SagitariiAmbassador extends NullFederateAmbassador {
+public class ZodiacAmbassador extends NullFederateAmbassador {
 
 	private void debug( String s ) {
 		Logger.getInstance().debug(this.getClass().getName(), s );
@@ -41,8 +41,8 @@ public class SagitariiAmbassador extends NullFederateAmbassador {
 			throws FederateInternalError {
 
 		try {
-			if ( TeapotFederate.getInstance().getCoreClass().objectExists( theObject ) ) {
-				TeapotFederate.getInstance().getCoreClass().provideAttributeValueUpdate(theObject, theAttributes);
+			if ( ScorpioFederate.getInstance().getCoreClass().objectExists( theObject ) ) {
+				ScorpioFederate.getInstance().getCoreClass().provideAttributeValueUpdate(theObject, theAttributes);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -52,35 +52,12 @@ public class SagitariiAmbassador extends NullFederateAmbassador {
 	
 	@Override
 	public void discoverObjectInstance( ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName ) throws FederateInternalError {
-		try {
-			if ( TeapotFederate.getInstance().getSagitariiClass().isSameOf( theObjectClass ) ) {
-				try {
-					debug("Sagitarii is online!");
-					TeapotFederate.getInstance().sagitariiIsUp();
-				} catch ( Exception e ) {
-					e.printStackTrace();
-				}
-			}
-			
-		} catch ( Exception e ) {
-			error( e.getMessage() );
-		}
+		//
 	}
 	
 	@Override
 	public void removeObjectInstance(ObjectInstanceHandle theObject, byte[] userSuppliedTag, OrderType sentOrdering, SupplementalRemoveInfo removeInfo)	{
-		try {
-			if ( TeapotFederate.getInstance().getSagitariiClass().objectExists(theObject) ) {
-				try {
-					debug("Remove Sagitarii object. Sagitarii is offline! ");
-					TeapotFederate.getInstance().sagitariiIsDown();
-				} catch ( Exception e ) {
-					e.printStackTrace();
-				}
-			}
-		} catch ( Exception e ) {
-			e.printStackTrace();
-		}		
+		//
 	}	
 
 	@Override
@@ -89,7 +66,7 @@ public class SagitariiAmbassador extends NullFederateAmbassador {
 			SupplementalReceiveInfo receiveInfo) throws FederateInternalError {
 		
 		try {
-			TeapotFederate.getInstance().processInstance( theParameters );
+			ScorpioFederate.getInstance().processInstance( theParameters );
 		} catch (Exception e) {
 			// TODO: handle exception
 		}

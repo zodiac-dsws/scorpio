@@ -3,7 +3,7 @@ package br.com.cmabreu.zodiac.federation.objects;
 import br.com.cmabreu.zodiac.scorpio.SystemProperties;
 import hla.rti1516e.ObjectInstanceHandle;
 
-public class TeapotObject {
+public class ScorpioObject {
 	private long freeMemory;		
 	private long totalMemory;
 	private double cpuLoad;
@@ -43,7 +43,7 @@ public class TeapotObject {
 		}
 	}
 	
-	public TeapotObject( ObjectInstanceHandle instance ) throws Exception {
+	public ScorpioObject( ObjectInstanceHandle instance ) throws Exception {
 		SystemProperties sp = SystemProperties.getInstance();
 		freeMemory = sp.getFreeMemory();		
 		totalMemory = sp.getTotalMemory();

@@ -5,7 +5,7 @@ public class Logger {
 	private boolean enabled;
 	
 	public void enable() {
-		enabled = false;
+		enabled = true;
 	}
 	
 	public void disable() {
@@ -21,14 +21,17 @@ public class Logger {
 	
 	public void debug( String className, String message ) {
 		if ( !enabled ) { return; }
+		System.out.println( "[DEBUG] " + className + " " + message);
 	}
 	
 	public void error( String className, String message ) {
 		if ( !enabled ) { return; }
+		System.out.println( "[ERROR] " + className + " " + message);
 	}
 	
 	public void warn( String className, String message ) {
 		if ( !enabled ) { return; }
+		System.out.println( "[WARN] " + className + " " + message);
 	}
 	
 

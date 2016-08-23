@@ -2,7 +2,7 @@ package br.com.cmabreu.zodiac.scorpio;
 
 import java.io.File;
 
-import br.com.cmabreu.zodiac.federation.federates.TeapotFederate;
+import br.com.cmabreu.zodiac.federation.federates.ScorpioFederate;
 
 
 public class Main {
@@ -17,9 +17,11 @@ public class Main {
 	
 	public static void main( String[] args ) {
 		
+		Logger.getInstance().enable();
+		
 		try {
 			
-			TeapotFederate tf = TeapotFederate.getInstance(); 
+			ScorpioFederate tf = ScorpioFederate.getInstance(); 
 			tf.startFederate();
 			
 		} catch ( Exception e ) {

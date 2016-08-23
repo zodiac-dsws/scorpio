@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import br.com.cmabreu.zodiac.federation.federates.TeapotFederate;
+import br.com.cmabreu.zodiac.federation.federates.ScorpioFederate;
 import br.com.cmabreu.zodiac.scorpio.Activation;
 import br.com.cmabreu.zodiac.scorpio.Task;
 import br.com.cmabreu.zodiac.scorpio.XMLParser;
@@ -231,8 +231,8 @@ public class CoreObject {
 		currentTask = null;
 		working = false;
 		try {
-			TeapotFederate.getInstance().getCoreClass().updateWorkingDataCore( this );
-			TeapotFederate.getInstance().notifyFederationInsaceFinished( this.getSerial(), oldInstanceSerial);
+			ScorpioFederate.getInstance().getCoreClass().updateWorkingDataCore( this );
+			ScorpioFederate.getInstance().notifyFederationInsaceFinished( this.getSerial(), oldInstanceSerial);
 			checked = true;
 			requestTask();
 		} catch ( Exception e ) {
@@ -254,7 +254,7 @@ public class CoreObject {
 			if( !requesting ) {
 				requesting = true;
 				checked = false;
-				TeapotFederate.getInstance().requestTask( getSerial() );
+				ScorpioFederate.getInstance().requestTask( getSerial() );
 			}
 		}		
 	}

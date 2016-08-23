@@ -12,9 +12,8 @@ import br.com.cmabreu.zodiac.federation.classes.FinishedInstanceInteractionClass
 import br.com.cmabreu.zodiac.federation.classes.RequestTaskInteractionClass;
 import br.com.cmabreu.zodiac.federation.classes.RunInstanceInteractionClass;
 import br.com.cmabreu.zodiac.federation.classes.RunInstanceInteractionClass.InstanceCommandPack;
-import br.com.cmabreu.zodiac.federation.classes.SagitariiClass;
-import br.com.cmabreu.zodiac.federation.classes.TeapotClass;
-import br.com.cmabreu.zodiac.federation.objects.TeapotObject;
+import br.com.cmabreu.zodiac.federation.classes.ScorpioClass;
+import br.com.cmabreu.zodiac.federation.objects.ScorpioObject;
 import br.com.cmabreu.zodiac.scorpio.Logger;
 import br.com.cmabreu.zodiac.scorpio.SystemProperties;
 import hla.rti1516e.ParameterHandleValueMap;
@@ -23,11 +22,10 @@ import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
 import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
 
-public class TeapotFederate {
+public class ScorpioFederate {
 	private String rootPath;
-	private static TeapotFederate instance;
-	private SagitariiClass sagitariiClass;
-	private TeapotClass teapotClass;
+	private static ScorpioFederate instance;
+	private ScorpioClass scorpioClass;
 	private CoreClass coreClass;
 	private RequestTaskInteractionClass requestTaskInteractionClass;
 	private RunInstanceInteractionClass runInstanceInteractionClass;
@@ -45,15 +43,15 @@ public class TeapotFederate {
 		return runInstanceInteractionClass;
 	}
 
-	public static TeapotFederate getInstance() throws Exception {
+	public static ScorpioFederate getInstance() throws Exception {
 		if ( instance == null ) {
-			instance = new TeapotFederate();
+			instance = new ScorpioFederate();
 		}
 		return instance;
 	}
 	
 	public void requestTask( String coreSerial ) throws Exception {
-		requestTaskInteractionClass.send( coreSerial, "teapot" );
+		requestTaskInteractionClass.send( coreSerial, "Scorpio" );
 	}
 	
 	public void notifyFederationInsaceFinished( String coreSerial, String instanceSerial ) throws Exception {
@@ -62,13 +60,9 @@ public class TeapotFederate {
 	}
 	
 	private void debug( String s ) {
-		Logger.getInstance().debug(this.getClass().getName(), s );
+		Logger.getInstance().debug( this.getClass().getName(), s );
 	}	
 	
-	private void warn( String s ) {
-		Logger.getInstance().warn(this.getClass().getName(), s );
-	}	
-
 	public void finishFederationExecution() throws Exception {
 		debug( "Will try to finish Federation execution" );
 		//rtiamb.resignFederationExecution( ResignAction.DELETE_OBJECTS );
@@ -76,7 +70,7 @@ public class TeapotFederate {
 		RTIambassador rtiamb = RTIAmbassadorProvider.getInstance().getRTIAmbassador();
 
 		try	{
-			rtiamb.destroyFederationExecution( "Sagitarii" );
+			rtiamb.destroyFederationExecution( "Zodiac" );
 			debug( "Destroyed Federation" );
 		} catch( FederationExecutionDoesNotExist dne ) {
 			debug( "No need to destroy federation, it doesn't exist" );
@@ -86,8 +80,8 @@ public class TeapotFederate {
 	}
 
 	
-	public TeapotFederate( ) throws Exception {
-		debug("Starting Sagitarii Federation");
+	public ScorpioFederate( ) throws Exception {
+		debug("Starting The Zodiac Federation");
 		this.rootPath = SystemProperties.getInstance().getTeapotRootFolder();
 		
 		try {
@@ -104,9 +98,9 @@ public class TeapotFederate {
 					(new File(rootPath + "/foms/HLAstandardMIM.xml")).toURI().toURL()
 				};
 				
-				rtiamb.createFederationExecution("Sagitarii", modules );
+				rtiamb.createFederationExecution("Zodiac", modules );
 			} catch( FederationExecutionAlreadyExists exists ) {
-				debug("Sagitarii Federation already exists. Bypassing...");
+				debug("Zodiac Federation already exists. Bypassing...");
 			}
 			
 			join();
@@ -124,79 +118,59 @@ public class TeapotFederate {
 		}
 	}
 	
-	public void sagitariiIsDown() {
-		// What need I do?
-	}
-	
-	public void sagitariiIsUp() {
-		// What need I do?
-	}
 
 	public void startFederate() throws Exception {
-		debug("starting server...");
-		if ( sagitariiClass == null ) {
+		
+		debug("starting Scorpio...");
 
-			// Publish my attributes
-			// DO NOT SUBSCRIBE OR WILL RECEIVE OTHER TEAPOTS IN A INFINITE LOOP
-			teapotClass = new TeapotClass();
-			teapotClass.publish();
-			// Create one node
-			TeapotObject to = teapotClass.createNew();
+		// Publish my attributes
+		// DO NOT SUBSCRIBE OR WILL RECEIVE OTHER TEAPOTS IN A INFINITE LOOP
+		scorpioClass = new ScorpioClass();
+		scorpioClass.publish();
+		// Create one node
+		ScorpioObject to = scorpioClass.createNew();
 
-			// Subscribe to server updates
-			// and will know when server is down ;-)
-			sagitariiClass = new SagitariiClass();
-			sagitariiClass.subscribe();
-			
-			// Publish Cores attributes 
-			// DO NOT SUBSCRIBE OR WILL RECEIVE OTHER CORES
-			coreClass = new CoreClass();
-			coreClass.publish();
+		// Publish Cores attributes 
+		// DO NOT SUBSCRIBE OR WILL RECEIVE OTHER CORES
+		coreClass = new CoreClass();
+		coreClass.publish();
 
-			// Will register machine cores into RTI
-			for (int x=0; x < to.getAvailableProcessors(); x++  ) {
-				coreClass.createNew( to.getMacAddress() );		
-			}
-
-			// Interactions
-			// Publish to request tasks from Sagitarii
-			requestTaskInteractionClass = new RequestTaskInteractionClass();
-			requestTaskInteractionClass.publish();
-			// Subscribe to listen for incomming tasks
-			runInstanceInteractionClass = new RunInstanceInteractionClass();
-			runInstanceInteractionClass.subscribe();
-			
-			// Publish to tell everybody I finished an instance
-			finishedInstanceInteractionClass = new FinishedInstanceInteractionClass();
-			finishedInstanceInteractionClass.publish();
-			
-			
-			debug("done.");
-			
-			while ( System.in.available() == 0 ) {
-
-				teapotClass.updateAttributeValues();
-				coreClass.requestInstances();
-				
-				try {
-					Thread.sleep(5000);
-				} catch (Exception e) {
-					//
-				}				
-			}			
-
-			
-		} else {
-			warn("server is already running an instance");
+		// Will register machine cores into RTI
+		for (int x=0; x < to.getAvailableProcessors(); x++  ) {
+			coreClass.createNew( to.getMacAddress() );		
 		}
+
+		// Interactions
+		// Publish to request tasks from Zodiac
+		requestTaskInteractionClass = new RequestTaskInteractionClass();
+		requestTaskInteractionClass.publish();
+		// Subscribe to listen for incomming tasks
+		runInstanceInteractionClass = new RunInstanceInteractionClass();
+		runInstanceInteractionClass.subscribe();
+		
+		// Publish to tell everybody I finished an instance
+		finishedInstanceInteractionClass = new FinishedInstanceInteractionClass();
+		finishedInstanceInteractionClass.publish();
+		
+		
+		debug("done.");
+		
+		while ( System.in.available() == 0 ) {
+
+			scorpioClass.updateAttributeValues();
+			coreClass.requestInstances();
+			
+			try {
+				Thread.sleep(5000);
+			} catch (Exception e) {
+				//
+			}				
+		}			
+
 	}
 	
-	public SagitariiClass getSagitariiClass() {
-		return sagitariiClass;
-	}
-	
-	public TeapotClass getTeapotClass() {
-		return teapotClass;
+	public ScorpioClass getTeapotClass() {
+		return scorpioClass;
 	}
 	
 	public CoreClass getCoreClass() {
@@ -205,15 +179,17 @@ public class TeapotFederate {
 	
 	private void join() throws Exception {
 		RTIambassador rtiamb = RTIAmbassadorProvider.getInstance().getRTIAmbassador();
-
-		debug("joing Federation Execution using FOM SagitariiFederation.xml...");
+		debug("joing Federation Execution");
+		
 		URL[] joinModules = new URL[]{
-		    (new File(rootPath +  "/foms/SagitariiFederation.xml")).toURI().toURL()
+			(new File(rootPath +  "/foms/zodiac.xml")).toURI().toURL(),
+			(new File(rootPath +  "/foms/core.xml")).toURI().toURL(),
+			(new File(rootPath +  "/foms/scorpio.xml")).toURI().toURL()
 		};
 		
 		String mac = SystemProperties.getInstance().getMacAddress();
 		
-		rtiamb.joinFederationExecution( "Teapot Node " + mac, "SagitariiType", "Sagitarii", joinModules );           
+		rtiamb.joinFederationExecution( "Scorpio Node " + mac, "ZodiacType", "Zodiac", joinModules );           
 	}
 	
 }
