@@ -30,6 +30,8 @@ public class CoreClass {
 	private AttributeHandle activitySerialHandle;
 	private AttributeHandle executorHandle;
 	private AttributeHandle executorTypeHandle;
+	private AttributeHandle currentInstanceHandle;
+	
 	
 	private AttributeHandleSet attributes;
 	private List<CoreObject> objects;
@@ -86,6 +88,7 @@ public class CoreClass {
 		HLAunicodeString activitySerialValue = encodec.createHLAunicodeString( core.getActivitySerial() );
 		HLAunicodeString executorValue = encodec.createHLAunicodeString( core.getExecutor() );
 		HLAunicodeString executorTypeValue = encodec.createHLAunicodeString( core.getExecutorType() );
+		HLAunicodeString currentInstanceHandleValue = encodec.createHLAunicodeString( core.getCurrentInstance() );
 		
 		HLAboolean isWorkingValue = encodec.createHLAboolean( core.isWorking() );
 		
@@ -98,6 +101,7 @@ public class CoreClass {
 		attributes.put( executorHandle, executorValue.toByteArray() );
 		attributes.put( executorTypeHandle, executorTypeValue.toByteArray() );
 		attributes.put( isWorkingHandle, isWorkingValue.toByteArray() );
+		attributes.put( currentInstanceHandle, currentInstanceHandleValue.toByteArray() );
 		
 		rtiamb.updateAttributeValues( core.getHandle(), attributes, "Core Working Data".getBytes() );
 	}	
@@ -169,6 +173,7 @@ public class CoreClass {
 		this.fragmentSerialHandle = rtiamb.getAttributeHandle( classHandle, "FragmentSerial" );
 		this.instanceSerialHandle = rtiamb.getAttributeHandle( classHandle, "InstanceSerial" );
 		this.activitySerialHandle = rtiamb.getAttributeHandle( classHandle, "ActivitySerial" );
+		this.currentInstanceHandle = rtiamb.getAttributeHandle( classHandle, "CurrentInstance" );
 		
 		this.executorHandle = rtiamb.getAttributeHandle( classHandle, "Executor" );
 		this.executorTypeHandle = rtiamb.getAttributeHandle( classHandle, "ExecutorType" );
@@ -183,6 +188,7 @@ public class CoreClass {
 		attributes.add( activitySerialHandle );
 		attributes.add( executorHandle );
 		attributes.add( executorTypeHandle );
+		attributes.add( currentInstanceHandle );
 		
 		objects = new ArrayList<CoreObject>();
 		encodec = new EncoderDecoder();

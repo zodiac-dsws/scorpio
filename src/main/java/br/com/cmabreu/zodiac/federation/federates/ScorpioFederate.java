@@ -8,10 +8,6 @@ import java.util.Map;
 import br.com.cmabreu.zodiac.federation.Environment;
 import br.com.cmabreu.zodiac.federation.RTIAmbassadorProvider;
 import br.com.cmabreu.zodiac.federation.classes.CoreClass;
-import br.com.cmabreu.zodiac.federation.classes.FinishedInstanceInteractionClass;
-import br.com.cmabreu.zodiac.federation.classes.RequestTaskInteractionClass;
-import br.com.cmabreu.zodiac.federation.classes.RunInstanceInteractionClass;
-import br.com.cmabreu.zodiac.federation.classes.RunInstanceInteractionClass.InstanceCommandPack;
 import br.com.cmabreu.zodiac.federation.classes.ScorpioClass;
 import br.com.cmabreu.zodiac.federation.objects.ScorpioObject;
 import br.com.cmabreu.zodiac.scorpio.Logger;
@@ -27,36 +23,12 @@ public class ScorpioFederate {
 	private static ScorpioFederate instance;
 	private ScorpioClass scorpioClass;
 	private CoreClass coreClass;
-	private RequestTaskInteractionClass requestTaskInteractionClass;
-	private RunInstanceInteractionClass runInstanceInteractionClass;
-	private FinishedInstanceInteractionClass finishedInstanceInteractionClass;
-	
-	public FinishedInstanceInteractionClass getFinishedInstanceInteractionClass() {
-		return finishedInstanceInteractionClass;
-	}
-	
-	public RequestTaskInteractionClass getRequestTaskInteractionClass() {
-		return requestTaskInteractionClass;
-	}
-	
-	public RunInstanceInteractionClass getRunInstanceInteractionClass() {
-		return runInstanceInteractionClass;
-	}
 
 	public static ScorpioFederate getInstance() throws Exception {
 		if ( instance == null ) {
 			instance = new ScorpioFederate();
 		}
 		return instance;
-	}
-	
-	public void requestTask( String coreSerial ) throws Exception {
-		requestTaskInteractionClass.send( coreSerial, "Scorpio" );
-	}
-	
-	public void notifyFederationInsaceFinished( String coreSerial, String instanceSerial ) throws Exception {
-		System.out.println("Finished instance " + instanceSerial + " by core " + coreSerial );
-		finishedInstanceInteractionClass.send(coreSerial, instanceSerial);
 	}
 	
 	private void debug( String s ) {
@@ -112,10 +84,7 @@ public class ScorpioFederate {
 	}
 	
 	public void processInstance( ParameterHandleValueMap theParameters ) throws Exception {
-		InstanceCommandPack icp = runInstanceInteractionClass.getInstanceHexDef( theParameters );
-		if ( icp != null  ) {
-			coreClass.processInstance(icp.targetCore, icp.instanceHex);
-		}
+		// 
 	}
 	
 
@@ -140,19 +109,7 @@ public class ScorpioFederate {
 			coreClass.createNew( to.getMacAddress() );		
 		}
 
-		// Interactions
-		// Publish to request tasks from Zodiac
-		requestTaskInteractionClass = new RequestTaskInteractionClass();
-		requestTaskInteractionClass.publish();
-		// Subscribe to listen for incomming tasks
-		runInstanceInteractionClass = new RunInstanceInteractionClass();
-		runInstanceInteractionClass.subscribe();
-		
-		// Publish to tell everybody I finished an instance
-		finishedInstanceInteractionClass = new FinishedInstanceInteractionClass();
-		finishedInstanceInteractionClass.publish();
-		
-		
+
 		debug("done.");
 		
 		while ( System.in.available() == 0 ) {

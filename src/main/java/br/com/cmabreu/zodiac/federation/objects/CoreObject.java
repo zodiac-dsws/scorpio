@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import br.com.cmabreu.zodiac.federation.federates.ScorpioFederate;
 import br.com.cmabreu.zodiac.scorpio.Activation;
+import br.com.cmabreu.zodiac.scorpio.Logger;
 import br.com.cmabreu.zodiac.scorpio.Task;
 import br.com.cmabreu.zodiac.scorpio.XMLParser;
 import br.com.cmabreu.zodiac.scorpio.ZipUtil;
@@ -21,6 +22,7 @@ public class CoreObject {
 	private String activitySerial = "*";
 	private String executor = "*";
 	private String executorType = "*";
+	private String currentInstance = "*";
 	private String ownerNode;
 	private Task currentTask;
 	private Thread thread;
@@ -34,6 +36,14 @@ public class CoreObject {
 	
 	public void setExecutor(String executor) {
 		this.executor = executor;
+	}
+	
+	public String getCurrentInstance() {
+		return currentInstance;
+	}
+	
+	public void setCurrentInstance(String currentInstance) {
+		this.currentInstance = currentInstance;
 	}
 	
 	public String getExecutorType() {
@@ -128,6 +138,14 @@ public class CoreObject {
 		return acts;
 	}	
 	
+	private void debug( String s ) {
+		Logger.getInstance().debug( this.getClass().getName(), s );
+	}
+
+	private void error( String s ) {
+		Logger.getInstance().error( this.getClass().getName(), s );
+	}	
+	
 	private void executeActivation( Activation act ) {
 		instanceSerial = act.getInstanceSerial();
 		activitySerial = act.getActivitySerial();
@@ -137,7 +155,7 @@ public class CoreObject {
 		executor = act.getExecutor();
 
 		
-		System.out.println("New instance "+ instanceSerial +" to core " + serial );
+		debug("New instance "+ instanceSerial +" to core " + serial );
 		
 		currentTask = new Task( this );
 		currentTask.setActivation( act );
@@ -221,22 +239,22 @@ public class CoreObject {
 	}
 	
 	private void finishThread() {
-		String oldInstanceSerial = instanceSerial; 
+		String oldInstanceSerial = instanceSerial;
 		instanceSerial = "*";
 		activitySerial = "*";
 		fragmentSerial = "*";
 		experimentSerial = "*";
 		executor = "*";
 		executorType = "*";
+		currentInstance = "*";
 		currentTask = null;
 		working = false;
 		try {
 			ScorpioFederate.getInstance().getCoreClass().updateWorkingDataCore( this );
-			ScorpioFederate.getInstance().notifyFederationInsaceFinished( this.getSerial(), oldInstanceSerial);
 			checked = true;
 			requestTask();
 		} catch ( Exception e ) {
-			//
+			error( "Error finishing Instance " + oldInstanceSerial + ": " + e.getMessage() );
 		}
 	}
 	
@@ -254,7 +272,7 @@ public class CoreObject {
 			if( !requesting ) {
 				requesting = true;
 				checked = false;
-				ScorpioFederate.getInstance().requestTask( getSerial() );
+				// REQUEST .... 
 			}
 		}		
 	}
