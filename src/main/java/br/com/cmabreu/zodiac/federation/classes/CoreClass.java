@@ -64,12 +64,15 @@ public class CoreClass {
 		return result;
 	}
 	
-	public void requestInstances() throws Exception {
-		if( !isIdle() ) return;
-		for ( CoreObject core : getCores() ) {
-			core.requestTask();
-		}
-	}
+	
+	public void requestOwnershipBack( CoreObject core ) throws Exception {
+		debug("Request attribute back: " + core.getSerial() );
+		RTIambassador rtiamb = RTIAmbassadorProvider.getInstance().getRTIAmbassador();
+		AttributeHandleSet ahs = rtiamb.getAttributeHandleSetFactory().create();
+		ahs.add( currentInstanceHandle );
+		rtiamb.attributeOwnershipAcquisition( core.getHandle(), ahs, null );		
+	}	
+	
 	
 	public synchronized void processInstance( String coreSerial, String instance ) throws Exception {
 		for ( CoreObject core : getCores() ) {
@@ -112,6 +115,9 @@ public class CoreClass {
 		}
 	}
 	
+	private void error( String s ) {
+		Logger.getInstance().error( this.getClass().getName(), s );
+	}		
 	
 	public void provideAttributeValueUpdate(ObjectInstanceHandle theObject, AttributeHandleSet theAttributes )  {
 		debug("Update attribute request for Core " + theObject);
@@ -120,7 +126,7 @@ public class CoreClass {
 				try {
 					updateAttributeValuesObject( core );
 				} catch ( Exception e ) {
-					e.printStackTrace();
+					error("Provide Attribute Update Error: " + e.getMessage() );
 				}
 				return;
 			}
@@ -137,10 +143,14 @@ public class CoreClass {
 		
 		HLAunicodeString serialNumberValue = encodec.createHLAunicodeString( object.getSerial() );
 		HLAunicodeString ownerNodeValue = encodec.createHLAunicodeString( object.getOwnerNode() );
-		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create(3);
-		attributes.put( serialNumberHandle, serialNumberValue.toByteArray() );
+		HLAunicodeString currentInstanceHandleValue = encodec.createHLAunicodeString( object.getCurrentInstance() );		
 		
+		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create(3);
+
+		attributes.put( serialNumberHandle, serialNumberValue.toByteArray() );
 		attributes.put( ownerNodeHandle, ownerNodeValue.toByteArray() );
+		attributes.put( currentInstanceHandle, currentInstanceHandleValue.toByteArray() );
+		
 		rtiamb.updateAttributeValues( object.getHandle(), attributes, "Core Attributes".getBytes() );
 	}
 	

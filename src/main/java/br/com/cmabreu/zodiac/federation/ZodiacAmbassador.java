@@ -56,6 +56,15 @@ public class ZodiacAmbassador extends NullFederateAmbassador {
 	}
 	
 	@Override
+    public void requestAttributeOwnershipRelease( ObjectInstanceHandle theObject, AttributeHandleSet candidateAttributes, byte[] userSuppliedTag) throws FederateInternalError {
+		try {
+			ScorpioFederate.getInstance().releaseAttributeOwnership(theObject, candidateAttributes);
+		} catch ( Exception e ) {
+			// This attributes may not be mine
+		}
+    }	
+	
+	@Override
 	public void removeObjectInstance(ObjectInstanceHandle theObject, byte[] userSuppliedTag, OrderType sentOrdering, SupplementalRemoveInfo removeInfo)	{
 		//
 	}	

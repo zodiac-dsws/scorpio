@@ -27,8 +27,6 @@ public class CoreObject {
 	private Task currentTask;
 	private Thread thread;
 	private List<Activation> executionQueue;
-	private boolean requesting = false;
-	private boolean checked = false;
 	
 	public String getExecutor() {
 		return executor;
@@ -203,13 +201,12 @@ public class CoreObject {
 	}
 	
 	public void process( String hexResp ) {
-		requesting = false;
 		if ( working ) {
 			System.out.println("Refused instance by " + serial + ": " + hexResp.substring(0,8).toUpperCase() );
 			return;
 		}
 		
-		System.out.println("Accepted instance by " + serial + ": " + hexResp.substring(0,8).toUpperCase() );
+		debug("Accepted instance by " + serial + ": " + hexResp.substring(0,8).toUpperCase() );
 
 		
 		working = true;
@@ -251,30 +248,15 @@ public class CoreObject {
 		working = false;
 		try {
 			ScorpioFederate.getInstance().getCoreClass().updateWorkingDataCore( this );
-			checked = true;
-			requestTask();
+			setCurrentInstanceToEmpty();
 		} catch ( Exception e ) {
 			error( "Error finishing Instance " + oldInstanceSerial + ": " + e.getMessage() );
 		}
 	}
 	
-	private void checkRequest() {
-		if ( !checked ) {
-			checked = true;
-		} else {
-			requesting = false;
-		}
-	}
 
-	public synchronized void requestTask() throws Exception {
-		if ( !isWorking() ) {
-			checkRequest();
-			if( !requesting ) {
-				requesting = true;
-				checked = false;
-				// REQUEST .... 
-			}
-		}		
+	private void setCurrentInstanceToEmpty() {
+		currentInstance = "*";
 	}
 	
 }

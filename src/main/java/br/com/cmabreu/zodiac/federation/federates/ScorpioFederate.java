@@ -12,6 +12,8 @@ import br.com.cmabreu.zodiac.federation.classes.ScorpioClass;
 import br.com.cmabreu.zodiac.federation.objects.ScorpioObject;
 import br.com.cmabreu.zodiac.scorpio.Logger;
 import br.com.cmabreu.zodiac.scorpio.SystemProperties;
+import hla.rti1516e.AttributeHandleSet;
+import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
@@ -35,10 +37,14 @@ public class ScorpioFederate {
 		Logger.getInstance().debug( this.getClass().getName(), s );
 	}	
 	
+	private void error( String s ) {
+		Logger.getInstance().error( this.getClass().getName(), s );
+	}	
+
 	public void finishFederationExecution() throws Exception {
 		debug( "Will try to finish Federation execution" );
-		//rtiamb.resignFederationExecution( ResignAction.DELETE_OBJECTS );
 		
+		//rtiamb.resignFederationExecution( ResignAction.DELETE_OBJECTS );
 		RTIambassador rtiamb = RTIAmbassadorProvider.getInstance().getRTIAmbassador();
 
 		try	{
@@ -92,31 +98,24 @@ public class ScorpioFederate {
 		
 		debug("starting Scorpio...");
 
-		// Publish my attributes
-		// DO NOT SUBSCRIBE OR WILL RECEIVE OTHER TEAPOTS IN A INFINITE LOOP
 		scorpioClass = new ScorpioClass();
 		scorpioClass.publish();
-		// Create one node
 		ScorpioObject to = scorpioClass.createNew();
 
 		// Publish Cores attributes 
-		// DO NOT SUBSCRIBE OR WILL RECEIVE OTHER CORES
+		// DO NOT SUBSCRIBE OR WILL RECEIVE OTHER CORES. We don't care.
 		coreClass = new CoreClass();
 		coreClass.publish();
 
-		// Will register machine cores into RTI
+		// Will register this machine cores into RTI
 		for (int x=0; x < to.getAvailableProcessors(); x++  ) {
 			coreClass.createNew( to.getMacAddress() );		
 		}
 
-
 		debug("done.");
 		
 		while ( System.in.available() == 0 ) {
-
 			scorpioClass.updateAttributeValues();
-			coreClass.requestInstances();
-			
 			try {
 				Thread.sleep(5000);
 			} catch (Exception e) {
@@ -148,5 +147,18 @@ public class ScorpioFederate {
 		
 		rtiamb.joinFederationExecution( "Scorpio Node " + mac, "ZodiacType", "Zodiac", joinModules );           
 	}
+
+	public void releaseAttributeOwnership(ObjectInstanceHandle theObject, AttributeHandleSet candidateAttributes) {
+		debug("Release Attribute Ownership Request");
+		
+		try {
+			RTIambassador rtiamb = RTIAmbassadorProvider.getInstance().getRTIAmbassador();
+			rtiamb.attributeOwnershipDivestitureIfWanted( theObject, candidateAttributes );
+		} catch ( Exception e ) {
+			error("Error: " + e.getMessage() );
+		}		
+	}
+	
+	
 	
 }
