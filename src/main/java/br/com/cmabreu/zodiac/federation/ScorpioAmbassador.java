@@ -14,25 +14,23 @@ import hla.rti1516e.TransportationTypeHandle;
 import hla.rti1516e.exceptions.FederateInternalError;
 
 
-public class ZodiacAmbassador extends NullFederateAmbassador {
+public class ScorpioAmbassador extends NullFederateAmbassador {
 
-	private void debug( String s ) {
-		Logger.getInstance().debug(this.getClass().getName(), s );
-	}	
 
 	private void warn( String s ) {
 		Logger.getInstance().warn(this.getClass().getName(), s );
 	}	
 
-	private void error( String s ) {
-		Logger.getInstance().error(this.getClass().getName(), s );
-	}	
 
 	@Override
 	public void reflectAttributeValues( ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes,
 	                                    byte[] tag, OrderType sentOrder, TransportationTypeHandle transport,
 	                                    SupplementalReflectInfo reflectInfo ) throws FederateInternalError {
-		reflectAttributeValues( theObject, theAttributes, tag, sentOrder, transport, null, sentOrder, reflectInfo );
+		try {
+			ScorpioFederate.getInstance().reflectAttributeValues( theObject, theAttributes );
+		} catch ( Exception e ) {
+			e.printStackTrace();
+		}
 	}
 
 	
@@ -55,12 +53,23 @@ public class ZodiacAmbassador extends NullFederateAmbassador {
 		//
 	}
 	
+	
+	@Override
+	public void attributeOwnershipAcquisitionNotification(	ObjectInstanceHandle theObject,	AttributeHandleSet securedAttributes, byte[] userSuppliedTag) throws FederateInternalError {
+		try {
+			ScorpioFederate.getInstance().attributeOwnershipAcquisitionNotification( theObject, securedAttributes );
+		} catch ( Exception e ) {
+			e.printStackTrace();
+		}
+	}	
+
+	
 	@Override
     public void requestAttributeOwnershipRelease( ObjectInstanceHandle theObject, AttributeHandleSet candidateAttributes, byte[] userSuppliedTag) throws FederateInternalError {
 		try {
 			ScorpioFederate.getInstance().releaseAttributeOwnership(theObject, candidateAttributes);
 		} catch ( Exception e ) {
-			// This attributes may not be mine
+			e.printStackTrace();
 		}
     }	
 	
@@ -74,12 +83,7 @@ public class ZodiacAmbassador extends NullFederateAmbassador {
 			byte[] userSuppliedTag, OrderType sentOrdering,	TransportationTypeHandle theTransport, 
 			SupplementalReceiveInfo receiveInfo) throws FederateInternalError {
 		
-		try {
-			ScorpioFederate.getInstance().processInstance( theParameters );
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-		
+		// 
 		
 	}
 	

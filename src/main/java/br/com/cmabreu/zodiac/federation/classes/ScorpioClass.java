@@ -126,14 +126,16 @@ public class ScorpioClass {
 		attributes.put( cpuLoadHandle, cpuLoadValue.toByteArray() );
 		attributes.put( totalMemoryHandle, totalMemoryValue.toByteArray() );
 		attributes.put( freeMemoryHandle, freeMemoryValue.toByteArray() );
-		rtiamb.updateAttributeValues( scorpio.getHandle(), attributes, "Teapot Attributes".getBytes() );
+		rtiamb.updateAttributeValues( scorpio.getHandle(), attributes, "Scorpio Attributes".getBytes() );
 	}	
 	
 	public void publish() throws RTIexception {
+		debug("publish Scorpio attributes");
 		rtiamb.publishObjectClassAttributes( classHandle, attributes );
 	}
 	
 	public void subscribe() throws RTIexception {
+		debug("subscribe to Scorpio attributes");
 		rtiamb.subscribeObjectClassAttributes( classHandle, attributes );		
 	}
 

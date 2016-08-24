@@ -32,7 +32,6 @@ public class CoreClass {
 	private AttributeHandle executorTypeHandle;
 	private AttributeHandle currentInstanceHandle;
 	
-	
 	private AttributeHandleSet attributes;
 	private List<CoreObject> objects;
 	private EncoderDecoder encodec;
@@ -74,11 +73,35 @@ public class CoreClass {
 	}	
 	
 	
-	public synchronized void processInstance( String coreSerial, String instance ) throws Exception {
+	
+	public synchronized void processInstance( ObjectInstanceHandle theObject,  AttributeHandleValueMap theAttributes ) throws Exception {
 		for ( CoreObject core : getCores() ) {
-			if ( core.getSerial().equals( coreSerial ) ) {
-				core.process( instance );
-				updateWorkingDataCore( core );
+			if ( core.isMe( theObject )  ) {
+				requestOwnershipBack( core );
+				
+				dont run here. wait to receive attribute ownership first
+				/*
+				for( AttributeHandle attributeHandle : theAttributes.keySet() )	{
+					
+					if( attributeHandle.equals( currentInstanceHandle ) ) {
+						String instance = encodec.toString( theAttributes.get( attributeHandle) );
+						debug("All OK: running instance " + instance + "... ");
+						
+						try {
+							Thread.sleep( 3000 );
+						} catch ( Exception e ) {
+							
+						}
+						
+						debug("Finish instance " + instance );
+						//core.process( instance );
+						//updateWorkingDataCore( core );
+						
+					}
+					
+				}
+				*/
+				
 				break;
 			}
 		}	
@@ -205,12 +228,14 @@ public class CoreClass {
 	}
 	
 	public void publish() throws RTIexception {
-		debug("publish");
+		debug("publish Core attributes");
 		rtiamb.publishObjectClassAttributes( classHandle, attributes );
 	}
 	
-	public void subscribe() throws RTIexception {
-		debug("subscribe");
+	public void subscribeToCurrentInstance() throws RTIexception {
+		debug("subscribe to Core current instance attribute");
+		AttributeHandleSet attributes = rtiamb.getAttributeHandleSetFactory().create();
+		attributes.add( currentInstanceHandle );
 		rtiamb.subscribeObjectClassAttributes( classHandle, attributes );		
 	}
 

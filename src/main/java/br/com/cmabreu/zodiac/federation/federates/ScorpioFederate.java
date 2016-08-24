@@ -13,8 +13,8 @@ import br.com.cmabreu.zodiac.federation.objects.ScorpioObject;
 import br.com.cmabreu.zodiac.scorpio.Logger;
 import br.com.cmabreu.zodiac.scorpio.SystemProperties;
 import hla.rti1516e.AttributeHandleSet;
+import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.ObjectInstanceHandle;
-import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
 import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
@@ -88,11 +88,7 @@ public class ScorpioFederate {
 		}		
 		
 	}
-	
-	public void processInstance( ParameterHandleValueMap theParameters ) throws Exception {
-		// 
-	}
-	
+
 
 	public void startFederate() throws Exception {
 		
@@ -103,9 +99,10 @@ public class ScorpioFederate {
 		ScorpioObject to = scorpioClass.createNew();
 
 		// Publish Cores attributes 
-		// DO NOT SUBSCRIBE OR WILL RECEIVE OTHER CORES. We don't care.
 		coreClass = new CoreClass();
 		coreClass.publish();
+		// Subscribe to CurrentInstance updates
+		coreClass.subscribeToCurrentInstance();
 
 		// Will register this machine cores into RTI
 		for (int x=0; x < to.getAvailableProcessors(); x++  ) {
@@ -138,14 +135,15 @@ public class ScorpioFederate {
 		debug("joing Federation Execution");
 		
 		URL[] joinModules = new URL[]{
-			(new File(rootPath +  "/foms/zodiac.xml")).toURI().toURL(),
+			(new File(rootPath +  "/foms/zodiac.xml")).toURI().toURL(),	
+			(new File(rootPath +  "/foms/sagittarius.xml")).toURI().toURL(),
 			(new File(rootPath +  "/foms/core.xml")).toURI().toURL(),
 			(new File(rootPath +  "/foms/scorpio.xml")).toURI().toURL()
 		};
 		
 		String mac = SystemProperties.getInstance().getMacAddress();
 		
-		rtiamb.joinFederationExecution( "Scorpio Node " + mac, "ZodiacType", "Zodiac", joinModules );           
+		rtiamb.joinFederationExecution( "Scorpio Node " + mac, "ScorpioType", "Zodiac", joinModules );           
 	}
 
 	public void releaseAttributeOwnership(ObjectInstanceHandle theObject, AttributeHandleSet candidateAttributes) {
@@ -154,11 +152,30 @@ public class ScorpioFederate {
 		try {
 			RTIambassador rtiamb = RTIAmbassadorProvider.getInstance().getRTIAmbassador();
 			rtiamb.attributeOwnershipDivestitureIfWanted( theObject, candidateAttributes );
+			debug("Released.");
 		} catch ( Exception e ) {
 			error("Error: " + e.getMessage() );
 		}		
 	}
 	
+	public void attributeOwnershipAcquisitionNotification( ObjectInstanceHandle theObject, AttributeHandleSet securedAttributes ) {
+		debug("I now own the Current Instance attibute.");
+		
+		execute instance
+		
+	}
+	
+
+	public void reflectAttributeValues( ObjectInstanceHandle theObject,  AttributeHandleValueMap theAttributes ) {
+		
+		try {
+			debug("Attribute update incommig...");
+			coreClass.processInstance(theObject, theAttributes);
+		} catch ( Exception e ) {
+			e.printStackTrace(); 
+		}		
+		
+	}
 	
 	
 }
