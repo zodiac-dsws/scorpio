@@ -25,6 +25,7 @@ public class ScorpioFederate {
 	private static ScorpioFederate instance;
 	private ScorpioClass scorpioClass;
 	private CoreClass coreClass;
+	private int totalInstances = 0;
 
 	public static ScorpioFederate getInstance() throws Exception {
 		if ( instance == null ) {
@@ -159,9 +160,15 @@ public class ScorpioFederate {
 	}
 	
 	public void attributeOwnershipAcquisitionNotification( ObjectInstanceHandle theObject, AttributeHandleSet securedAttributes ) {
-		debug("I now own the Current Instance attibute.");
-		
-		execute instance
+		debug( "[" + totalInstances + "] I now own the Current Instance attibute again. Lets doit! ");
+		try {
+			coreClass.processInstance( theObject );
+			totalInstances++;
+		} catch ( Exception e ) {
+			error("Cannot execute instance: " + e.getMessage() );
+			
+			e.printStackTrace();
+		}
 		
 	}
 	
@@ -170,7 +177,7 @@ public class ScorpioFederate {
 		
 		try {
 			debug("Attribute update incommig...");
-			coreClass.processInstance(theObject, theAttributes);
+			coreClass.takeBackCurrentInstanceOwnership(theObject, theAttributes);
 		} catch ( Exception e ) {
 			e.printStackTrace(); 
 		}		

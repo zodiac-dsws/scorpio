@@ -73,38 +73,57 @@ public class CoreClass {
 	}	
 	
 	
+	public synchronized void processInstance( ObjectInstanceHandle theObject ) throws Exception {
 	
-	public synchronized void processInstance( ObjectInstanceHandle theObject,  AttributeHandleValueMap theAttributes ) throws Exception {
 		for ( CoreObject core : getCores() ) {
 			if ( core.isMe( theObject )  ) {
-				requestOwnershipBack( core );
+				debug("All OK: Core " + core.getSerial() + " will run instance " + core.getCurrentInstance().substring(0,10) + "... ");
+
+				//core.process( instance );
 				
-				dont run here. wait to receive attribute ownership first
-				/*
-				for( AttributeHandle attributeHandle : theAttributes.keySet() )	{
-					
-					if( attributeHandle.equals( currentInstanceHandle ) ) {
-						String instance = encodec.toString( theAttributes.get( attributeHandle) );
-						debug("All OK: running instance " + instance + "... ");
-						
-						try {
-							Thread.sleep( 3000 );
-						} catch ( Exception e ) {
-							
-						}
-						
-						debug("Finish instance " + instance );
-						//core.process( instance );
-						//updateWorkingDataCore( core );
-						
-					}
-					
-				}
-				*/
-				
+				// Isso precisa ficar dentro do processo por causa do Thread do core.
+				debug("Core " + core.getSerial() + " finished instance " + core.getCurrentInstance().substring(0,10) );
+				core.setCurrentInstance("*");
+				core.setWorking( false );
+				updateWorkingDataCore( core );
+
 				break;
 			}
-		}	
+		}
+				
+	}
+	
+	
+	private String getHexInstance( AttributeHandleValueMap theAttributes ) {
+		String instance = "";
+		for( AttributeHandle attributeHandle : theAttributes.keySet() )	{
+			if( attributeHandle.equals( currentInstanceHandle ) ) {
+				instance = encodec.toString( theAttributes.get( attributeHandle) );
+				break;
+			}
+		}
+		return instance;
+	}
+	
+	public synchronized void takeBackCurrentInstanceOwnership( ObjectInstanceHandle theObject,  AttributeHandleValueMap theAttributes ) throws Exception {
+		boolean found = false;
+		for ( CoreObject core : getCores() ) {
+			if ( core.isMe( theObject )  ) {
+				found = true;
+				if ( !core.isWorking() ) {
+					core.setWorking( true );
+					String instance = getHexInstance( theAttributes );
+					core.setCurrentInstance( instance );
+					requestOwnershipBack( core );
+				} else {
+					error("Too fast! Core " + core.getSerial() + " still working.");
+				}
+				break;
+			}
+		}
+		if ( !found ) {
+			error("Cannot find a valid core to process this instance.");
+		}
 	}
 	
 	public void updateWorkingDataCore( CoreObject core ) throws Exception {
