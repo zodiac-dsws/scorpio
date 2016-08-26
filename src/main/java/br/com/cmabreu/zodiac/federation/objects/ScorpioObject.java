@@ -13,7 +13,12 @@ public class ScorpioObject {
 	private String macAddress;
 	private String ipAddress;
 	private ObjectInstanceHandle instance;
-
+	private int totalInstances = 0;
+	
+	public int getTotalInstances() {
+		return totalInstances;
+	}
+	
 	public String getIpAddress() {
 		return ipAddress;
 	}
@@ -109,6 +114,8 @@ public class ScorpioObject {
 		this.macAddress = macAddress;
 	}
 	
-	
+	public void increaseTotalInstances() {
+		totalInstances++;
+	}	
 
 }

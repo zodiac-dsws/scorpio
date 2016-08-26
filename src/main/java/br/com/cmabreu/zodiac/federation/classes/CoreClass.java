@@ -74,9 +74,25 @@ public class CoreClass {
 		RTIambassador rtiamb = RTIAmbassadorProvider.getInstance().getRTIAmbassador();
 		AttributeHandleSet ahs = rtiamb.getAttributeHandleSetFactory().create();
 		ahs.add( currentInstanceHandle );
-		rtiamb.attributeOwnershipAcquisition( core.getHandle(), ahs, null );		
+		
+		// attributeOwnershipAcquisitionIfAvailable
+		// attributeOwnershipAcquisition
+		rtiamb.attributeOwnershipAcquisition( core.getHandle(), ahs, "Getting back my attribute".getBytes() );
+		
+		// Will try to get back even when Sagittarius was gone. The attribute will be unowned.
+		rtiamb.attributeOwnershipAcquisitionIfAvailable( core.getHandle(), ahs );
 	}	
 	
+	public synchronized void processInstance( ObjectInstanceHandle theObject ) throws Exception {
+		for ( CoreObject core : getCores() ) {
+			if ( core.isMe( theObject )  ) {
+				core.process( core.getCurrentInstance() );
+				debug("Core " + core.getSerial() + " finished instance " + core.getInstanceSerial() );
+				updateWorkingDataCore( core );
+				break;
+			}
+		}
+	}		
 	
 	public void updateWorkingDataCore( CoreObject core ) throws Exception {
 		HLAunicodeString experimentSerialValue = encodec.createHLAunicodeString( core.getExperimentSerial() );

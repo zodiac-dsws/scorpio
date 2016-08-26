@@ -23,6 +23,15 @@ public class ScorpioAmbassador extends NullFederateAmbassador {
 
 
 	@Override
+	public void attributeOwnershipUnavailable( ObjectInstanceHandle theObject, AttributeHandleSet theAttributes ) {
+		try {
+			ScorpioFederate.getInstance().reportOwnershipUnavailable( theObject, theAttributes );
+		} catch ( Exception e ) {
+			e.printStackTrace();
+		}		
+	}
+	
+	@Override
 	public void reflectAttributeValues( ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes,
 	                                    byte[] tag, OrderType sentOrder, TransportationTypeHandle transport,
 	                                    SupplementalReflectInfo reflectInfo ) throws FederateInternalError {

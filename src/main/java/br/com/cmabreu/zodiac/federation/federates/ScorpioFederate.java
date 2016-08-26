@@ -28,7 +28,6 @@ public class ScorpioFederate {
 	private static ScorpioFederate instance;
 	private ScorpioClass scorpioClass;
 	private CoreClass coreClass;
-	private int totalInstances = 0;
 
 	public static ScorpioFederate getInstance() throws Exception {
 		if ( instance == null ) {
@@ -93,23 +92,6 @@ public class ScorpioFederate {
 		
 	}
 
-	private synchronized void processInstance( ObjectInstanceHandle theObject ) throws Exception {
-		
-		for ( CoreObject core : coreClass.getCores() ) {
-			if ( core.isMe( theObject )  ) {
-				debug("Core " + core.getSerial() + " will run instance " + core.getCurrentInstance() + "... ");
-
-				core.process( core.getCurrentInstance() );
-				
-				// Isso precisa ficar dentro do processo por causa do Thread do core.
-				debug("Core " + core.getSerial() + " finished instance " + core.getCurrentInstance() );
-				updateWorkingDataCore( core );
-				break;
-			}
-		}
-				
-	}	
-	
 	public void updateWorkingDataCore( CoreObject core ) throws Exception {
 		coreClass.updateWorkingDataCore( core );
 	}
@@ -186,17 +168,15 @@ public class ScorpioFederate {
 		}		
 	}
 	
+	// The attribute "CurrentInstance" ownership was took. WIll run the instance.
 	public void attributeOwnershipAcquisitionNotification( ObjectInstanceHandle theObject, AttributeHandleSet securedAttributes ) {
-		debug( "[" + totalInstances + "] I now own the Current Instance attibute again. Lets doit! ");
 		try {
-			processInstance( theObject );
-			totalInstances++;
+			coreClass.processInstance( theObject );
+			scorpioClass.increaseTotalInstances();
 		} catch ( Exception e ) {
 			error("Cannot execute instance: " + e.getMessage() );
-			
 			e.printStackTrace();
 		}
-		
 	}
 	
 	private String getHexInstance( AttributeHandleValueMap theAttributes, CoreObject core ) throws Exception {
@@ -239,6 +219,15 @@ public class ScorpioFederate {
 			e.printStackTrace(); 
 		}		
 		
+	}
+
+	public void reportOwnershipUnavailable(ObjectInstanceHandle theObject, AttributeHandleSet theAttributes) {
+		for ( CoreObject core : coreClass.getCores() ) {
+			if ( core.isMe( theObject )  ) {
+				debug( core.getSerial() + "@" + core.getOwnerNode() + ": attribute not available yet.");
+				break;
+			}
+		}
 	}
 	
 	

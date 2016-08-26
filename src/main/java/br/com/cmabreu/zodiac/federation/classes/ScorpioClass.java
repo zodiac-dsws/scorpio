@@ -29,13 +29,14 @@ public class ScorpioClass {
 	private AttributeHandle totalMemoryHandle;
 	private AttributeHandle freeMemoryHandle;
 	private AttributeHandle ipAddressHandle;
+	private AttributeHandle totalInstancesHandle;
 	
 	private AttributeHandleSet attributes;
 	
 	private EncoderDecoder encodec;	
 	private ScorpioObject scorpio;
 
-	public ScorpioObject getTeapot() {
+	public ScorpioObject getScorpio() {
 		return scorpio;
 	}
 	
@@ -76,6 +77,7 @@ public class ScorpioClass {
 		this.totalMemoryHandle = rtiamb.getAttributeHandle( classHandle, "TotalMemory" );
 		this.freeMemoryHandle = rtiamb.getAttributeHandle( classHandle, "FreeMemory" );
 		this.ipAddressHandle = rtiamb.getAttributeHandle( classHandle, "IPAddress" );
+		this.totalInstancesHandle = rtiamb.getAttributeHandle( classHandle, "TotalInstances" );
 		
 		this.attributes = rtiamb.getAttributeHandleSetFactory().create();
 		attributes.add( macAddressHandle );
@@ -86,22 +88,25 @@ public class ScorpioClass {
 		attributes.add( totalMemoryHandle );
 		attributes.add( freeMemoryHandle );
 		attributes.add( ipAddressHandle );
+		attributes.add( totalInstancesHandle );
 		
 		encodec = new EncoderDecoder();	
 	}
 
-	private void firstUpdateAllAttributeValues( ScorpioObject object ) throws RTIexception {
+	private void firstUpdateAllAttributeValues( ScorpioObject scorpio ) throws RTIexception {
 		debug("updating all attributes for first time");
 
 		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create(8);
-		HLAunicodeString macAddressValue = encodec.createHLAunicodeString( object.getMacAddress() );
-		HLAunicodeString soNameValue = encodec.createHLAunicodeString( object.getSoName() );
-		HLAunicodeString machineNameValue = encodec.createHLAunicodeString( object.getMachineName() );
-		HLAfloat64BE cpuLoadValue = encodec.createHLAfloat64BE( object.getCpuLoad() );
-		HLAinteger32BE availableProcessorsValue = encodec.createHLAinteger32BE( object.getAvailableProcessors() );
-		HLAinteger64BE totalMemoryValue = encodec.createHLAinteger64BE( object.getTotalMemory() );
-		HLAinteger64BE freeMemoryValue = encodec.createHLAinteger64BE( object.getFreeMemory() );
-		HLAunicodeString ipAddressValue = encodec.createHLAunicodeString( object.getIpAddress() );
+		HLAunicodeString macAddressValue = encodec.createHLAunicodeString( scorpio.getMacAddress() );
+		HLAunicodeString soNameValue = encodec.createHLAunicodeString( scorpio.getSoName() );
+		HLAunicodeString machineNameValue = encodec.createHLAunicodeString( scorpio.getMachineName() );
+		HLAfloat64BE cpuLoadValue = encodec.createHLAfloat64BE( scorpio.getCpuLoad() );
+		HLAinteger32BE availableProcessorsValue = encodec.createHLAinteger32BE( scorpio.getAvailableProcessors() );
+		HLAinteger64BE totalMemoryValue = encodec.createHLAinteger64BE( scorpio.getTotalMemory() );
+		HLAinteger64BE freeMemoryValue = encodec.createHLAinteger64BE( scorpio.getFreeMemory() );
+		HLAunicodeString ipAddressValue = encodec.createHLAunicodeString( scorpio.getIpAddress() );
+
+		HLAinteger32BE totalInstancesValue = encodec.createHLAinteger32BE( scorpio.getTotalInstances() );
 
 		attributes.put( macAddressHandle, macAddressValue.toByteArray() );
 		attributes.put( soNameHandle, soNameValue.toByteArray() );
@@ -111,8 +116,9 @@ public class ScorpioClass {
 		attributes.put( totalMemoryHandle, totalMemoryValue.toByteArray() );
 		attributes.put( freeMemoryHandle, freeMemoryValue.toByteArray() );
 		attributes.put( ipAddressHandle, ipAddressValue.toByteArray() );
+		attributes.put( totalInstancesHandle, totalInstancesValue.toByteArray() );
 		
-		rtiamb.updateAttributeValues( object.getHandle(), attributes, "Teapot Attributes".getBytes() );
+		rtiamb.updateAttributeValues( scorpio.getHandle(), attributes, "Scorpio Attributes".getBytes() );
 	}	
 	
 
@@ -123,9 +129,11 @@ public class ScorpioClass {
 		HLAfloat64BE cpuLoadValue = encodec.createHLAfloat64BE( scorpio.getCpuLoad() );
 		HLAinteger64BE totalMemoryValue = encodec.createHLAinteger64BE( scorpio.getTotalMemory() );
 		HLAinteger64BE freeMemoryValue = encodec.createHLAinteger64BE( scorpio.getFreeMemory() );
+		HLAinteger32BE totalInstancesValue = encodec.createHLAinteger32BE( scorpio.getTotalInstances() );
 		attributes.put( cpuLoadHandle, cpuLoadValue.toByteArray() );
 		attributes.put( totalMemoryHandle, totalMemoryValue.toByteArray() );
 		attributes.put( freeMemoryHandle, freeMemoryValue.toByteArray() );
+		attributes.put( totalInstancesHandle, totalInstancesValue.toByteArray() );
 		rtiamb.updateAttributeValues( scorpio.getHandle(), attributes, "Scorpio Attributes".getBytes() );
 	}	
 	
@@ -137,6 +145,10 @@ public class ScorpioClass {
 	public void subscribe() throws RTIexception {
 		debug("subscribe to Scorpio attributes");
 		rtiamb.subscribeObjectClassAttributes( classHandle, attributes );		
+	}
+
+	public void increaseTotalInstances() {
+		scorpio.increaseTotalInstances();
 	}
 
 	
