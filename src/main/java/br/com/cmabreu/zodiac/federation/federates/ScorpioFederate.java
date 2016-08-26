@@ -5,13 +5,16 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import br.com.cmabreu.zodiac.federation.EncoderDecoder;
 import br.com.cmabreu.zodiac.federation.Environment;
 import br.com.cmabreu.zodiac.federation.RTIAmbassadorProvider;
 import br.com.cmabreu.zodiac.federation.classes.CoreClass;
 import br.com.cmabreu.zodiac.federation.classes.ScorpioClass;
+import br.com.cmabreu.zodiac.federation.objects.CoreObject;
 import br.com.cmabreu.zodiac.federation.objects.ScorpioObject;
 import br.com.cmabreu.zodiac.scorpio.Logger;
 import br.com.cmabreu.zodiac.scorpio.SystemProperties;
+import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.ObjectInstanceHandle;
@@ -90,7 +93,31 @@ public class ScorpioFederate {
 		
 	}
 
+	private synchronized void processInstance( ObjectInstanceHandle theObject ) throws Exception {
+		
+		for ( CoreObject core : coreClass.getCores() ) {
+			if ( core.isMe( theObject )  ) {
+				debug("Core " + core.getSerial() + " will run instance " + core.getCurrentInstance() + "... ");
 
+				core.process( core.getCurrentInstance() );
+				
+				// Isso precisa ficar dentro do processo por causa do Thread do core.
+				debug("Core " + core.getSerial() + " finished instance " + core.getCurrentInstance() );
+				updateWorkingDataCore( core );
+				break;
+			}
+		}
+				
+	}	
+	
+	public void updateWorkingDataCore( CoreObject core ) throws Exception {
+		coreClass.updateWorkingDataCore( core );
+	}
+	
+	public void updateWorkingData( ) throws Exception {
+		coreClass.updateWorkingData( );
+	}
+	
 	public void startFederate() throws Exception {
 		
 		debug("starting Scorpio...");
@@ -162,7 +189,7 @@ public class ScorpioFederate {
 	public void attributeOwnershipAcquisitionNotification( ObjectInstanceHandle theObject, AttributeHandleSet securedAttributes ) {
 		debug( "[" + totalInstances + "] I now own the Current Instance attibute again. Lets doit! ");
 		try {
-			coreClass.processInstance( theObject );
+			processInstance( theObject );
 			totalInstances++;
 		} catch ( Exception e ) {
 			error("Cannot execute instance: " + e.getMessage() );
@@ -172,12 +199,42 @@ public class ScorpioFederate {
 		
 	}
 	
-
+	private String getHexInstance( AttributeHandleValueMap theAttributes, CoreObject core ) throws Exception {
+		EncoderDecoder encodec = new EncoderDecoder();
+		String instance = "";
+		for( AttributeHandle attributeHandle : theAttributes.keySet() )	{
+			if( attributeHandle.equals( coreClass.getCurrentInstanceHandle() ) ) {
+				instance = encodec.toString( theAttributes.get( attributeHandle) );
+				break;
+			}
+		}
+		return instance;
+	}	
+	
+	private synchronized void takeBackCurrentInstanceOwnership( ObjectInstanceHandle theObject,  AttributeHandleValueMap theAttributes ) throws Exception {
+		boolean found = false;
+		for ( CoreObject core : coreClass.getCores() ) {
+			if ( core.isMe( theObject )  ) {
+				found = true;
+				if ( !core.isWorking() ) {
+					core.setCurrentInstance( getHexInstance( theAttributes, core ) );
+					coreClass.requestOwnershipBack( core );
+				} else {
+					error("Too fast! Core " + core.getSerial() + " still working.");
+				}
+				break;
+			}
+		}
+		if ( !found ) {
+			error("Cannot find a valid core to process this instance.");
+		}
+	}
+	
 	public void reflectAttributeValues( ObjectInstanceHandle theObject,  AttributeHandleValueMap theAttributes ) {
 		
 		try {
 			debug("Attribute update incommig...");
-			coreClass.takeBackCurrentInstanceOwnership(theObject, theAttributes);
+			takeBackCurrentInstanceOwnership(theObject, theAttributes);
 		} catch ( Exception e ) {
 			e.printStackTrace(); 
 		}		

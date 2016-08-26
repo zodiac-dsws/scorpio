@@ -67,7 +67,7 @@ public class Task implements Runnable {
 	 */
 	public void executeCommand( String command ) {
 		try {
-			File fil = new File ( "f:/echo/" + owner.getSerial() + ".txt" );
+			File fil = new File ( "d:/echo/" + owner.getSerial() + ".txt" );
 			fil.createNewFile();
 			FileWriter fw = new FileWriter(fil.getAbsoluteFile());
 			BufferedWriter bw = new BufferedWriter(fw);

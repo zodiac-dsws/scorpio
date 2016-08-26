@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.cmabreu.zodiac.federation.ExecutionResult;
 import br.com.cmabreu.zodiac.federation.federates.ScorpioFederate;
 import br.com.cmabreu.zodiac.scorpio.Activation;
 import br.com.cmabreu.zodiac.scorpio.Logger;
@@ -14,7 +15,7 @@ import hla.rti1516e.ObjectInstanceHandle;
 
 public class CoreObject {
 	private ObjectInstanceHandle objectInstance;
-	private boolean working;
+	private boolean working = false;
 	private String serial;
 	private String experimentSerial = "*";
 	private String instanceSerial = "*";
@@ -27,6 +28,15 @@ public class CoreObject {
 	private Task currentTask;
 	private Thread thread;
 	private List<Activation> executionQueue;
+	private int result;
+	
+	public int getResult() {
+		return result;
+	}
+	
+	public void setResult(int result) {
+		this.result = result;
+	}
 	
 	public String getExecutor() {
 		return executor;
@@ -65,7 +75,7 @@ public class CoreObject {
 	}
 	
 	public CoreObject( ObjectInstanceHandle objectInstance ) {
-		serial = UUID.randomUUID().toString().replace("-", "").substring(0,5);
+		serial = UUID.randomUUID().toString().replace("-", "").substring(0,6).toUpperCase();
 		this.working = false;
 		this.objectInstance = objectInstance;
 		this.executionQueue = new ArrayList<Activation>();
@@ -91,10 +101,6 @@ public class CoreObject {
 		this.serial = serial;
 	}
 	
-	public void setWorking(boolean working) {
-		this.working = working;
-	}
-
 	public String getExperimentSerial() {
 		return experimentSerial;
 	}
@@ -152,8 +158,7 @@ public class CoreObject {
 		executorType = act.getExecutorType();
 		executor = act.getExecutor();
 
-		
-		debug("New instance "+ instanceSerial +" to core " + serial );
+		debug("Accepted instance " + instanceSerial + " by " +  serial + "@" + ownerNode  );
 		
 		currentTask = new Task( this );
 		currentTask.setActivation( act );
@@ -202,14 +207,20 @@ public class CoreObject {
 	
 	public void process( String hexResp ) {
 		if ( working ) {
-			System.out.println("Refused instance by " + serial + ": " + hexResp.substring(0,8).toUpperCase() );
+			error("Refused instance by " + serial + "@" + ownerNode  + ": Core is busy.");
+			setResult( ExecutionResult.RESULT_REFUSED );
 			return;
 		}
 		
-		debug("Accepted instance by " + serial + ": " + hexResp.substring(0,8).toUpperCase() );
-
-		
+		result = ExecutionResult.RESULT_OK;
 		working = true;
+		
+		try {
+			ScorpioFederate.getInstance().updateWorkingDataCore( this );
+		} catch ( Exception e ) {
+			error("Error when updating Core attributes: " + e.getMessage() );
+		}
+		
 		List<Activation> activations;
 		try {
 			activations = decompress( hexResp );
@@ -220,7 +231,8 @@ public class CoreObject {
 				working = false;
 			}
 		} catch (Exception e) {
-			working = false;
+			result = ExecutionResult.RESULT_ERROR;
+			finishThread();
 			e.printStackTrace();
 		}
 	}
@@ -237,7 +249,7 @@ public class CoreObject {
 	
 	private void finishThread() {
 		String oldInstanceSerial = instanceSerial;
-		instanceSerial = "*";
+		// instanceSerial = "*"; // Don't do it!! Need this to control "Finish Instance" at server side.
 		activitySerial = "*";
 		fragmentSerial = "*";
 		experimentSerial = "*";
@@ -246,17 +258,13 @@ public class CoreObject {
 		currentInstance = "*";
 		currentTask = null;
 		working = false;
+		currentInstance = "*";
+		
 		try {
 			ScorpioFederate.getInstance().getCoreClass().updateWorkingDataCore( this );
-			setCurrentInstanceToEmpty();
 		} catch ( Exception e ) {
 			error( "Error finishing Instance " + oldInstanceSerial + ": " + e.getMessage() );
 		}
-	}
-	
-
-	private void setCurrentInstanceToEmpty() {
-		currentInstance = "*";
 	}
 	
 }

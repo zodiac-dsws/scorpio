@@ -14,6 +14,7 @@ import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.encoding.HLAboolean;
+import hla.rti1516e.encoding.HLAinteger32BE;
 import hla.rti1516e.encoding.HLAunicodeString;
 import hla.rti1516e.exceptions.RTIexception;
 
@@ -31,11 +32,15 @@ public class CoreClass {
 	private AttributeHandle executorHandle;
 	private AttributeHandle executorTypeHandle;
 	private AttributeHandle currentInstanceHandle;
+	private AttributeHandle executionResultHandle;
 	
 	private AttributeHandleSet attributes;
 	private List<CoreObject> objects;
 	private EncoderDecoder encodec;
 	
+	public AttributeHandle getCurrentInstanceHandle() {
+		return currentInstanceHandle;
+	}
 	
 	public List<CoreObject> getCores() {
 		return new ArrayList<CoreObject>(objects);
@@ -73,59 +78,6 @@ public class CoreClass {
 	}	
 	
 	
-	public synchronized void processInstance( ObjectInstanceHandle theObject ) throws Exception {
-	
-		for ( CoreObject core : getCores() ) {
-			if ( core.isMe( theObject )  ) {
-				debug("All OK: Core " + core.getSerial() + " will run instance " + core.getCurrentInstance().substring(0,10) + "... ");
-
-				//core.process( instance );
-				
-				// Isso precisa ficar dentro do processo por causa do Thread do core.
-				debug("Core " + core.getSerial() + " finished instance " + core.getCurrentInstance().substring(0,10) );
-				core.setCurrentInstance("*");
-				core.setWorking( false );
-				updateWorkingDataCore( core );
-
-				break;
-			}
-		}
-				
-	}
-	
-	
-	private String getHexInstance( AttributeHandleValueMap theAttributes ) {
-		String instance = "";
-		for( AttributeHandle attributeHandle : theAttributes.keySet() )	{
-			if( attributeHandle.equals( currentInstanceHandle ) ) {
-				instance = encodec.toString( theAttributes.get( attributeHandle) );
-				break;
-			}
-		}
-		return instance;
-	}
-	
-	public synchronized void takeBackCurrentInstanceOwnership( ObjectInstanceHandle theObject,  AttributeHandleValueMap theAttributes ) throws Exception {
-		boolean found = false;
-		for ( CoreObject core : getCores() ) {
-			if ( core.isMe( theObject )  ) {
-				found = true;
-				if ( !core.isWorking() ) {
-					core.setWorking( true );
-					String instance = getHexInstance( theAttributes );
-					core.setCurrentInstance( instance );
-					requestOwnershipBack( core );
-				} else {
-					error("Too fast! Core " + core.getSerial() + " still working.");
-				}
-				break;
-			}
-		}
-		if ( !found ) {
-			error("Cannot find a valid core to process this instance.");
-		}
-	}
-	
 	public void updateWorkingDataCore( CoreObject core ) throws Exception {
 		HLAunicodeString experimentSerialValue = encodec.createHLAunicodeString( core.getExperimentSerial() );
 		HLAunicodeString fragmentSerialValue = encodec.createHLAunicodeString( core.getFragmentSerial() );
@@ -134,7 +86,7 @@ public class CoreClass {
 		HLAunicodeString executorValue = encodec.createHLAunicodeString( core.getExecutor() );
 		HLAunicodeString executorTypeValue = encodec.createHLAunicodeString( core.getExecutorType() );
 		HLAunicodeString currentInstanceHandleValue = encodec.createHLAunicodeString( core.getCurrentInstance() );
-		
+		HLAinteger32BE executionResultValue = encodec.createHLAinteger32BE( core.getResult() );
 		HLAboolean isWorkingValue = encodec.createHLAboolean( core.isWorking() );
 		
 		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create(5);
@@ -147,6 +99,7 @@ public class CoreClass {
 		attributes.put( executorTypeHandle, executorTypeValue.toByteArray() );
 		attributes.put( isWorkingHandle, isWorkingValue.toByteArray() );
 		attributes.put( currentInstanceHandle, currentInstanceHandleValue.toByteArray() );
+		attributes.put( executionResultHandle, executionResultValue.toByteArray() );
 		
 		rtiamb.updateAttributeValues( core.getHandle(), attributes, "Core Working Data".getBytes() );
 	}	
@@ -166,7 +119,7 @@ public class CoreClass {
 		for ( CoreObject core : getCores() ) {
 			if( core.isMe( theObject ) ) {
 				try {
-					updateAttributeValuesObject( core );
+					sendCoreInitialState( core );
 				} catch ( Exception e ) {
 					error("Provide Attribute Update Error: " + e.getMessage() );
 				}
@@ -175,25 +128,24 @@ public class CoreClass {
 		}
 	}	
 	
+	/*
 	public void updateAttributeValues() throws RTIexception {
 		for ( CoreObject object : getCores() ) {
 			updateAttributeValuesObject( object );
 		}
 	}
-	
-	public void updateAttributeValuesObject( CoreObject object ) throws RTIexception {
-		
-		HLAunicodeString serialNumberValue = encodec.createHLAunicodeString( object.getSerial() );
-		HLAunicodeString ownerNodeValue = encodec.createHLAunicodeString( object.getOwnerNode() );
-		HLAunicodeString currentInstanceHandleValue = encodec.createHLAunicodeString( object.getCurrentInstance() );		
-		
-		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create(3);
+	*/
 
+	// Sent under request
+	private void sendCoreInitialState( CoreObject core ) throws RTIexception {
+		HLAunicodeString serialNumberValue = encodec.createHLAunicodeString( core.getSerial() );
+		HLAunicodeString ownerNodeValue = encodec.createHLAunicodeString( core.getOwnerNode() );
+		HLAunicodeString currentInstanceHandleValue = encodec.createHLAunicodeString( core.getCurrentInstance() );		
+		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create(3);
 		attributes.put( serialNumberHandle, serialNumberValue.toByteArray() );
 		attributes.put( ownerNodeHandle, ownerNodeValue.toByteArray() );
 		attributes.put( currentInstanceHandle, currentInstanceHandleValue.toByteArray() );
-		
-		rtiamb.updateAttributeValues( object.getHandle(), attributes, "Core Attributes".getBytes() );
+		rtiamb.updateAttributeValues( core.getHandle(), attributes, "Core Initial State".getBytes() );
 	}
 	
 	public boolean objectExists( ObjectInstanceHandle objHandle ) {
@@ -226,6 +178,7 @@ public class CoreClass {
 		this.instanceSerialHandle = rtiamb.getAttributeHandle( classHandle, "InstanceSerial" );
 		this.activitySerialHandle = rtiamb.getAttributeHandle( classHandle, "ActivitySerial" );
 		this.currentInstanceHandle = rtiamb.getAttributeHandle( classHandle, "CurrentInstance" );
+		this.executionResultHandle = rtiamb.getAttributeHandle( classHandle, "LastExecutionResult" );
 		
 		this.executorHandle = rtiamb.getAttributeHandle( classHandle, "Executor" );
 		this.executorTypeHandle = rtiamb.getAttributeHandle( classHandle, "ExecutorType" );
@@ -241,6 +194,7 @@ public class CoreClass {
 		attributes.add( executorHandle );
 		attributes.add( executorTypeHandle );
 		attributes.add( currentInstanceHandle );
+		attributes.add( executionResultHandle );
 		
 		objects = new ArrayList<CoreObject>();
 		encodec = new EncoderDecoder();
