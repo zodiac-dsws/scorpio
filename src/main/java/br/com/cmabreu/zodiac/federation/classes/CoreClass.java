@@ -52,7 +52,7 @@ public class CoreClass {
 	}
 	
 	public ObjectInstanceHandle createNew( String ownerNode ) throws RTIexception {
-		debug("new HLA Object instance to node " + ownerNode );
+		debug("Core found in node " + ownerNode );
 		ObjectInstanceHandle coreObjectHandle = rtiamb.registerObjectInstance( classHandle );
 		CoreObject co = new CoreObject( coreObjectHandle );
 		co.setOwnerNode(ownerNode);
@@ -75,8 +75,6 @@ public class CoreClass {
 		AttributeHandleSet ahs = rtiamb.getAttributeHandleSetFactory().create();
 		ahs.add( currentInstanceHandle );
 		
-		// attributeOwnershipAcquisitionIfAvailable
-		// attributeOwnershipAcquisition
 		rtiamb.attributeOwnershipAcquisition( core.getHandle(), ahs, "Getting back my attribute".getBytes() );
 		
 		// Will try to get back even when Sagittarius was gone. The attribute will be unowned.

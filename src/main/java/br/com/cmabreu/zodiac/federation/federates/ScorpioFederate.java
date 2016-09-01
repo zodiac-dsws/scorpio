@@ -148,6 +148,7 @@ public class ScorpioFederate {
 			(new File(rootPath +  "/foms/zodiac.xml")).toURI().toURL(),	
 			(new File(rootPath +  "/foms/sagittarius.xml")).toURI().toURL(),
 			(new File(rootPath +  "/foms/core.xml")).toURI().toURL(),
+			(new File(rootPath +  "/foms/gemini.xml")).toURI().toURL(),
 			(new File(rootPath +  "/foms/scorpio.xml")).toURI().toURL()
 		};
 		
