@@ -223,12 +223,14 @@ public class ScorpioFederate {
 	}
 
 	public void reportOwnershipUnavailable(ObjectInstanceHandle theObject, AttributeHandleSet theAttributes) {
+		/*
 		for ( CoreObject core : coreClass.getCores() ) {
 			if ( core.isMe( theObject )  ) {
 				debug( core.getSerial() + "@" + core.getOwnerNode() + ": attribute not available yet.");
 				break;
 			}
 		}
+		*/
 	}
 	
 	
