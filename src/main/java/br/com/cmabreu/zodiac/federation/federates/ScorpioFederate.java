@@ -13,7 +13,7 @@ import br.com.cmabreu.zodiac.federation.classes.ScorpioClass;
 import br.com.cmabreu.zodiac.federation.objects.CoreObject;
 import br.com.cmabreu.zodiac.federation.objects.ScorpioObject;
 import br.com.cmabreu.zodiac.scorpio.Logger;
-import br.com.cmabreu.zodiac.scorpio.SystemProperties;
+import br.com.cmabreu.zodiac.scorpio.misc.SystemProperties;
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;

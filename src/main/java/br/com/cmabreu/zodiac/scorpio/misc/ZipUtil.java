@@ -1,4 +1,4 @@
-package br.com.cmabreu.zodiac.scorpio;
+package br.com.cmabreu.zodiac.scorpio.misc;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

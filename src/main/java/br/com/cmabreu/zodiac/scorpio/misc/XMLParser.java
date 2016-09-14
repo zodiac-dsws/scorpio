@@ -1,5 +1,10 @@
-package br.com.cmabreu.zodiac.scorpio;
+package br.com.cmabreu.zodiac.scorpio.misc;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,36 +13,18 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-/**
- * Copyright 2015 Carlos Magno Abreu
- * magno.mabreu@gmail.com 
- *
- * Licensed under the Apache  License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required  by  applicable law or agreed to in  writing,  software
- * distributed   under the  License is  distributed  on  an  "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the  specific language  governing  permissions  and
- * limitations under the License.
- * 
- */
+import br.com.cmabreu.zodiac.scorpio.entity.Workflow;
+import br.com.cmabreu.zodiac.scorpio.misc.TableAttribute.AttributeType;
 
 public class XMLParser {
 	private Document doc;
-	private Logger logger = LogManager.getLogger( this.getClass().getName() );
-
+	
 	
 	private String getTagValue(String sTag, Element eElement) throws Exception{
 		try {
@@ -67,19 +54,80 @@ public class XMLParser {
 		}
 		return inputData;
 	}
+
+	public Workflow parseWorkflow( String xmlFile ) throws Exception {
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		
+		File file = new File( xmlFile );
+		InputStream inputStream= new FileInputStream(file);
+		Reader reader = new InputStreamReader(inputStream,"UTF-8");		
+		InputSource is = new InputSource( reader );
+
+		doc = dBuilder.parse( is );
+		doc.getDocumentElement().normalize();
+		
+		NodeList tableNodeList = doc.getElementsByTagName("workflow");
+		Node pipeConf = tableNodeList.item( 0 );
+		Element wfElement = (Element) pipeConf;
+		String tag = wfElement.getAttribute("tag");
+		String description = wfElement.getAttribute("description");
+		String activitiesSpecs = getTagValue("spec", wfElement);
+		
+		Workflow wf = new Workflow();
+		wf.setTag( tag );
+		wf.setDescription( description );
+		wf.setActivitiesSpecs( activitiesSpecs );
+		
+		return wf;
+	}
+	
+	
+	public List<TableAttribute> parseTableSchema( String xmlFile ) throws Exception {
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		
+		File file = new File( xmlFile );
+		InputStream inputStream= new FileInputStream(file);
+		Reader reader = new InputStreamReader(inputStream,"UTF-8");		
+		InputSource is = new InputSource( reader );
+
+		doc = dBuilder.parse( is );
+		doc.getDocumentElement().normalize();
+		
+		NodeList tableNodeList = doc.getElementsByTagName("table");
+		Node pipeConf = tableNodeList.item( 0 );
+		Element tableElement = (Element) pipeConf;
+		String tableName = tableElement.getAttribute("name");
+		
+		List<TableAttribute> result = new ArrayList<TableAttribute>();
+		NodeList fieldList = doc.getElementsByTagName("field");
+		for ( int x = 0; x < fieldList.getLength(); x++ ) {
+			Node fieldNode = fieldList.item(x);
+			Element fieldElement = (Element) fieldNode;
+			String fieldName = fieldElement.getAttribute("name");
+			String fieldType = fieldElement.getAttribute("type");
+			
+			TableAttribute ta = new TableAttribute();
+			ta.setName( fieldName );
+			ta.setType( AttributeType.valueOf( fieldType ) );
+			ta.setTableName(tableName);
+			result.add( ta );
+		}
+		
+		reader.close();
+		file.delete();
+		return result;
+	}
+	
 	
 	public List<Activation> parseActivations( String xml ) throws Exception {
-		logger.debug("parsing XML for tasks");
+
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		try {
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			InputSource is = new InputSource( new StringReader(xml) );
-			doc = dBuilder.parse( is );
-			doc.getDocumentElement().normalize();
-		} catch ( Exception e ) {
-			logger.error( e.getMessage() );
-			throw e;
-		}
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		InputSource is = new InputSource( new StringReader(xml) );
+		doc = dBuilder.parse( is );
+		doc.getDocumentElement().normalize();
 		
 		NodeList pipeTag = doc.getElementsByTagName("instance");
 		Node pipeConf = pipeTag.item( 0 );
@@ -88,12 +136,15 @@ public class XMLParser {
 		String fragment = pipeElement.getAttribute("fragment");
 		String experiment = pipeElement.getAttribute("experiment");
 		String workflow = pipeElement.getAttribute("workflow");
+		int instanceId = 0;
+		try {
+			instanceId = Integer.valueOf( pipeElement.getAttribute("id") );
+		} catch (Exception e) {
+			
+		}
 		
 		List<Activation> resp = new ArrayList<Activation>();
 		NodeList mapconfig = doc.getElementsByTagName("activity");
-		
-		logger.debug( "found instance ID " + pipeSerial );
-		
 		for ( int x = 0; x < mapconfig.getLength(); x++ ) {
 			try {
 				Node mpconfig = mapconfig.item(x);
@@ -108,14 +159,14 @@ public class XMLParser {
 				String executor = getTagValue("executor", mpElement);
 				String executorType = getTagValue("executorType", mpElement);
 				String targetTable = getTagValue("targetTable", mpElement);
-
-				logger.debug(" > found task " + executor + " (execution order " + order + ")");
+				
 				
 				Activation activation = new Activation();
 				activation.setWorkflow(workflow);
 				activation.setType(type);
 				activation.setExperiment(experiment);
 				activation.setInstanceSerial(pipeSerial);
+				activation.setInstanceId( instanceId );
 				activation.setSourceData( getSourceData( sourceData ) );
 				activation.setCommand(command);
 				activation.setFragment(fragment);
@@ -125,36 +176,6 @@ public class XMLParser {
 				activation.setExecutor( executor );
 				activation.setExecutorType( executorType );
 				activation.setTargetTable( targetTable );
-				
-				try {
-					NodeList nFileList = mpElement.getElementsByTagName("files").item(0).getChildNodes();
-					for ( int y = 0; y < nFileList.getLength(); y++ ) {
-						if( nFileList.item(y).getNodeType() == Node.ELEMENT_NODE){
-							Element fileElement = (Element)nFileList.item(y);
-							String fileName = fileElement.getAttribute("name");
-							String table = fileElement.getAttribute("table");
-							String attribute = fileElement.getAttribute("attribute");
-							String index = fileElement.getAttribute("index");
-							FileUnity fu = new FileUnity( fileName );
-							fu.setId( Integer.valueOf( index ) );
-							fu.setAttribute(attribute);
-							fu.setSourceTable(table);
-							activation.addFile( fu );
-							
-							logger.debug("found file " + fileName + " in XML instance. attribute:  " + attribute + " table: " + table +  
-									" executor: " + executor + "(" + serial + ")" );
-							
-						} else {
-							Node nFile = (Node) nFileList.item( y );
-							logger.error("unknown node: " + nFile.getNodeName() );
-						}
-						
-					}
-				} catch ( Exception e ) {
-					e.printStackTrace();
-					logger.error( e.getMessage() );
-				}
-				
 				resp.add(activation);
 				
 			} catch (Exception e){
@@ -170,3 +191,6 @@ public class XMLParser {
 	
 
 }
+
+
+

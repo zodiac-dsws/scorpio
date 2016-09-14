@@ -1,6 +1,6 @@
 package br.com.cmabreu.zodiac.federation.objects;
 
-import br.com.cmabreu.zodiac.scorpio.SystemProperties;
+import br.com.cmabreu.zodiac.scorpio.misc.SystemProperties;
 import hla.rti1516e.ObjectInstanceHandle;
 
 public class ScorpioObject {

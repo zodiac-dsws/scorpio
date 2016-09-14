@@ -1,4 +1,4 @@
-package br.com.cmabreu.zodiac.scorpio;
+package br.com.cmabreu.zodiac.scorpio.misc;
 /**
  * Copyright 2015 Carlos Magno Abreu
  * magno.mabreu@gmail.com 

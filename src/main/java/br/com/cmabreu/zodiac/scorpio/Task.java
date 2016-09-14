@@ -8,6 +8,9 @@ import java.util.Date;
 import java.util.List;
 
 import br.com.cmabreu.zodiac.federation.objects.CoreObject;
+import br.com.cmabreu.zodiac.scorpio.misc.Activation;
+import br.com.cmabreu.zodiac.scorpio.services.RelationService;
+import br.com.cmabreu.zodiac.scorpio.types.ExecutorType;
 
 
 
@@ -65,23 +68,38 @@ public class Task implements Runnable {
 	 * WIll block until task is finished
 	 * 
 	 */
-	public void executeCommand( String command ) {
-		try {
-			File fil = new File ( "d:/echo/" + owner.getSerial() + ".txt" );
-			fil.createNewFile();
-			FileWriter fw = new FileWriter(fil.getAbsoluteFile());
-			BufferedWriter bw = new BufferedWriter(fw);
-			for ( int x = 0; x < 20000; x++ ) {
-				for ( int y = 0; y < 400; y++ ) {
-					bw.write( ">> " + y + "," + x + "\n" );
-				}
+	public void executeCommand( String command ) throws Exception {
+		File fil = new File ( "d:/echo/" + owner.getSerial() + ".txt" );
+		fil.createNewFile();
+		FileWriter fw = new FileWriter(fil.getAbsoluteFile());
+		BufferedWriter bw = new BufferedWriter(fw);
+		for ( int x = 0; x < 20000; x++ ) {
+			for ( int y = 0; y < 400; y++ ) {
+				bw.write( ">> " + command + " = " + y + "," + x + "\n" );
 			}
-			bw.close();
-		} catch ( Exception e ) {
-			
 		}
+		bw.close();
 	}
 
+	/**
+	 * BLOCKING
+	 * Will execute a external program (wrapper)
+	 * WIll block until task is finished
+	 * 
+	 */
+	public void executeSqlCommand( String command ) throws Exception {
+		RelationService rs = new RelationService();
+		rs.executeQuery( command );
+		
+		File fil = new File ( "d:/echo/" + owner.getSerial() + ".txt" );
+		fil.createNewFile();
+		FileWriter fw = new FileWriter(fil.getAbsoluteFile());
+		BufferedWriter bw = new BufferedWriter(fw);
+		bw.write( command );
+		bw.close();
+	}
+	
+	
 	public int getExitCode() {
 		return this.exitCode;
 	}
@@ -100,8 +118,17 @@ public class Task implements Runnable {
 
 	@Override
 	public void run() {
-		executeCommand( "" );
-		owner.notifyFinishedByTask();
+		int exitCode = 0;
+		try {
+			if ( activation.getExecutorType() == ExecutorType.SELECT ) {
+				executeSqlCommand( activation.getCommand() );
+			} else {
+				executeCommand( activation.getCommand() );
+			}
+		} catch ( Exception e ) {
+			exitCode = 1;
+		}
+		owner.notifyFinishedByTask( exitCode );
 	}
 
 }

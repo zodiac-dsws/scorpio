@@ -6,11 +6,11 @@ import java.util.UUID;
 
 import br.com.cmabreu.zodiac.federation.ExecutionResult;
 import br.com.cmabreu.zodiac.federation.federates.ScorpioFederate;
-import br.com.cmabreu.zodiac.scorpio.Activation;
 import br.com.cmabreu.zodiac.scorpio.Logger;
 import br.com.cmabreu.zodiac.scorpio.Task;
-import br.com.cmabreu.zodiac.scorpio.XMLParser;
-import br.com.cmabreu.zodiac.scorpio.ZipUtil;
+import br.com.cmabreu.zodiac.scorpio.misc.Activation;
+import br.com.cmabreu.zodiac.scorpio.misc.XMLParser;
+import br.com.cmabreu.zodiac.scorpio.misc.ZipUtil;
 import hla.rti1516e.ObjectInstanceHandle;
 
 public class CoreObject {
@@ -155,10 +155,10 @@ public class CoreObject {
 		activitySerial = act.getActivitySerial();
 		fragmentSerial = act.getFragment();
 		experimentSerial = act.getExperiment();
-		executorType = act.getExecutorType();
+		executorType = act.getExecutorType().toString();
 		executor = act.getExecutor();
 
-		debug("Accepted instance " + instanceSerial + " by " +  serial + "@" + ownerNode  );
+		debug("Accepted instance " + instanceSerial + " by " +  serial + "@" + ownerNode + " |  Experiment " + experimentSerial + " Executor " + executor + " ("+executorType+")");
 		
 		currentTask = new Task( this );
 		currentTask.setActivation( act );
@@ -237,7 +237,7 @@ public class CoreObject {
 		}
 	}
 	
-	public void notifyFinishedByTask() {
+	public void notifyFinishedByTask( int exitCode ) {
 		if ( executionQueue.size() > 0 ) {
 			int nextAct = currentTask.getActivation().getOrder() + 1;
 			runNext( nextAct );

@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import br.com.cmabreu.zodiac.scorpio.misc.PathFinder;
+
 public class Logger {
 	private static Logger instance;
 	private boolean enabled;
