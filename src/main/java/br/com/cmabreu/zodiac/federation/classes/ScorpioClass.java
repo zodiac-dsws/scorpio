@@ -125,7 +125,7 @@ public class ScorpioClass {
 	// Just need to update attributes that changes
 	public void updateAttributeValues( ) throws RTIexception {
 		scorpio.updateValues();
-		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create(3);
+		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create(4);
 		HLAfloat64BE cpuLoadValue = encodec.createHLAfloat64BE( scorpio.getCpuLoad() );
 		HLAinteger64BE totalMemoryValue = encodec.createHLAinteger64BE( scorpio.getTotalMemory() );
 		HLAinteger64BE freeMemoryValue = encodec.createHLAinteger64BE( scorpio.getFreeMemory() );

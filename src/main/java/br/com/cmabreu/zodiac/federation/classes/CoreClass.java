@@ -129,26 +129,17 @@ public class CoreClass {
 	}		
 	
 	public void provideAttributeValueUpdate(ObjectInstanceHandle theObject, AttributeHandleSet theAttributes )  {
-		debug("Update attribute request for Core " + theObject);
-		for ( CoreObject core : getCores() ) {
-			if( core.isMe( theObject ) ) {
-				try {
-					sendCoreInitialState( core );
-				} catch ( Exception e ) {
-					error("Provide Attribute Update Error: " + e.getMessage() );
-				}
-				return;
+		CoreObject core = getCore( theObject );
+		if ( core != null ) {
+			debug("Received attribute update Core " + core.getSerial() );
+			try {
+				sendCoreInitialState( core );
+			} catch ( Exception e ) {
+				error("Send Core Initial State error: " + e.getMessage() );
 			}
 		}
 	}	
 	
-	/*
-	public void updateAttributeValues() throws RTIexception {
-		for ( CoreObject object : getCores() ) {
-			updateAttributeValuesObject( object );
-		}
-	}
-	*/
 
 	// Sent under request
 	private void sendCoreInitialState( CoreObject core ) throws RTIexception {
@@ -224,6 +215,15 @@ public class CoreClass {
 		AttributeHandleSet attributes = rtiamb.getAttributeHandleSetFactory().create();
 		attributes.add( currentInstanceHandle );
 		rtiamb.subscribeObjectClassAttributes( classHandle, attributes );		
+	}
+
+	public CoreObject getCore(ObjectInstanceHandle objHandle) {
+		for ( CoreObject core : getCores()  ) {
+			if ( core.isMe( objHandle ) ) {
+				return core;
+			}
+		}
+		return null;
 	}
 
 	

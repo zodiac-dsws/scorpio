@@ -158,12 +158,13 @@ public class ScorpioFederate {
 	}
 
 	public void releaseAttributeOwnership(ObjectInstanceHandle theObject, AttributeHandleSet candidateAttributes) {
-		debug("Release Attribute Ownership Request");
+		CoreObject core = coreClass.getCore( theObject );
+		debug("Received request to release ownership of Core " + core.getSerial() );
 		
 		try {
 			RTIambassador rtiamb = RTIAmbassadorProvider.getInstance().getRTIAmbassador();
 			rtiamb.attributeOwnershipDivestitureIfWanted( theObject, candidateAttributes );
-			debug("Released.");
+			debug("Ownership of Core " + core.getSerial() + " released.");
 		} catch ( Exception e ) {
 			error("Error: " + e.getMessage() );
 		}		

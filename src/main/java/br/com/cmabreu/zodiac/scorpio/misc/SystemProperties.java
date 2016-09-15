@@ -222,7 +222,7 @@ public class SystemProperties  {
 		
 		localStorage = teapotRootFolder + "/storage";
 		File storage = new File( localStorage );
-		storage.mkdir();
+		//storage.mkdir();
 		
 		try {	
 			classPath = System.getenv("CLASSPATH");
