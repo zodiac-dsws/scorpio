@@ -74,7 +74,7 @@ public class Task implements Runnable {
 		FileWriter fw = new FileWriter(fil.getAbsoluteFile());
 		BufferedWriter bw = new BufferedWriter(fw);
 		for ( int x = 0; x < 20000; x++ ) {
-			for ( int y = 0; y < 400; y++ ) {
+			for ( int y = 0; y < 200; y++ ) {
 				bw.write( ">> " + command + " = " + y + "," + x + "\n" );
 			}
 		}
