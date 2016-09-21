@@ -3,6 +3,7 @@ package br.com.cmabreu.zodiac.scorpio;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,6 +24,7 @@ public class Task implements Runnable {
 	private int PID;
 	private CoreObject owner;
 	private Activation activation;
+	
 	
 	public int getPID() {
 		return PID;
@@ -62,6 +64,44 @@ public class Task implements Runnable {
 		this.owner = owner;
 	}
 
+	
+	private void dump() {
+		try {
+			String fileName = "dump/" + owner.getSerial() + "/";
+			File fil = new File( "dump" );
+			fil.mkdirs();
+			
+			FileWriter fw = new FileWriter(fileName, true);
+		    BufferedWriter bw = new BufferedWriter(fw);
+		    PrintWriter writer = new PrintWriter(bw);
+		    
+			writer.println("--------------------------------------------------------");
+			writer.println("Start Time         : " + activation.getStartTime() );
+			writer.println("Workflow           : " + activation.getWorkflow() );
+			writer.println("Experiment         : " + activation.getExperiment() );
+			writer.println("Fragment           : " + activation.getFragment() );
+			writer.println("Activity           : " + activation.getActivitySerial() );
+			writer.println("Instance           : " + activation.getInstanceSerial() );
+			writer.println("Command            : " + activation.getCommand() );
+			writer.println("Executor           : " + activation.getExecutor() );
+			writer.println("Executor Type      : " + activation.getExecutorType() );
+			writer.println("Target Table       : " + activation.getTargetTable() );
+			writer.println("--------------------------------------------------------");
+			writer.println( activation.getXmlOriginalData() );
+			writer.println("--------------------------------------------------------");
+			writer.println("");
+			writer.println("");
+			writer.println("");
+			writer.println("");
+		    
+			writer.close();
+		    
+		} catch ( Exception e ) {
+			System.out.println("Cannot Dump Core " + owner.getSerial() );
+		}
+		
+	}
+	
 	/**
 	 * BLOCKING
 	 * Will execute a external program (wrapper)
@@ -69,16 +109,7 @@ public class Task implements Runnable {
 	 * 
 	 */
 	public void executeCommand( String command ) throws Exception {
-		File fil = new File ( "d:/echo/" + owner.getSerial() + ".txt" );
-		fil.createNewFile();
-		FileWriter fw = new FileWriter(fil.getAbsoluteFile());
-		BufferedWriter bw = new BufferedWriter(fw);
-		for ( int x = 0; x < 20000; x++ ) {
-			for ( int y = 0; y < 200; y++ ) {
-				bw.write( ">> " + command + " = " + y + "," + x + "\n" );
-			}
-		}
-		bw.close();
+		dump();
 	}
 
 	/**
@@ -90,13 +121,7 @@ public class Task implements Runnable {
 	public void executeSqlCommand( String command ) throws Exception {
 		RelationService rs = new RelationService();
 		rs.executeQuery( command );
-		
-		File fil = new File ( "d:/echo/" + owner.getSerial() + ".txt" );
-		fil.createNewFile();
-		FileWriter fw = new FileWriter(fil.getAbsoluteFile());
-		BufferedWriter bw = new BufferedWriter(fw);
-		bw.write( command );
-		bw.close();
+		dump();
 	}
 	
 	

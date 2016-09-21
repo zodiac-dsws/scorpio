@@ -48,9 +48,7 @@ public class ScorpioAmbassador extends NullFederateAmbassador {
 			throws FederateInternalError {
 
 		try {
-			if ( ScorpioFederate.getInstance().getCoreClass().objectExists( theObject ) ) {
-				ScorpioFederate.getInstance().getCoreClass().provideAttributeValueUpdate(theObject, theAttributes);
-			}
+			ScorpioFederate.getInstance().getCoreClass().provideAttributeValueUpdate(theObject, theAttributes);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
