@@ -38,30 +38,9 @@ public class Configurator {
 	private String password;
 	private String databaseName;
 	private String hadoopConfigPath;
-
+	
 	public String getHadoopConfigPath() {
 		return hadoopConfigPath;
-	}
-	
-	public String toXml() {
-		StringBuilder xmlData = new StringBuilder();
-		xmlData.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-		xmlData.append("<configuration><sagitarii>");
-		xmlData.append("<poolIntervalSeconds>"+poolIntervalSeconds+"</poolIntervalSeconds>");
-		xmlData.append("<pseudoClusterIntervalSeconds>"+pseudoClusterIntervalSeconds+"</pseudoClusterIntervalSeconds>");
-		xmlData.append("<pseudoMaxTasks>"+pseudoMaxTasks+"</pseudoMaxTasks>");
-		xmlData.append("<maxInputBufferCapacity>"+maxInputBufferCapacity+"</maxInputBufferCapacity>");
-		xmlData.append("<mainNodesQuant>"+mainNodesQuant+"</mainNodesQuant>");
-		xmlData.append("<fileReceiverPort>"+fileReceiverPort+"</fileReceiverPort>");
-		xmlData.append("<fileReceiverChunkBufferSize>"+fileReceiverChunkBufferSize+"</fileReceiverChunkBufferSize>");
-		xmlData.append("<firstDelayLimitSeconds>"+firstDelayLimitSeconds+"</firstDelayLimitSeconds>");
-		xmlData.append("<CSVDelimiter>"+CSVDelimiter+"</CSVDelimiter>");
-		xmlData.append("<useDynamicLoadBalancer>"+useDynamicLoadBalancer+"</useDynamicLoadBalancer>");
-		xmlData.append("<databaseName>"+databaseName+"</databaseName>");
-		xmlData.append("<userName>"+userName+"</userName>");
-		xmlData.append("<password>"+password+"</password>");
-		xmlData.append("</sagitarii></configuration>");		
-		return xmlData.toString();
 	}
 	
 	public String getUserName() {
@@ -82,6 +61,17 @@ public class Configurator {
 	
 	public long getFirstDelayLimitSeconds() {
 		return firstDelayLimitSeconds;
+	}
+	
+	public String getRootFolder() throws Exception {
+		File f = new File( this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath() );
+		String rootFolder =  f.getAbsolutePath();
+		rootFolder = rootFolder.substring(0, rootFolder.lastIndexOf( File.separator ) + 1).replace(File.separator, "/");
+		return rootFolder;
+	}
+	
+	public String getWrappersFolder() throws Exception {
+		return getRootFolder() + "wrappers/";
 	}
 	
     public double getProcessCpuLoad() {
@@ -199,7 +189,6 @@ public class Configurator {
 		
 	}
 	
-	
 	public void loadMainConfig()  {
 		NodeList mapconfig = doc.getElementsByTagName("sagittarius");
 		Node mpconfig = mapconfig.item(0);
@@ -221,6 +210,11 @@ public class Configurator {
 			useDynamicLoadBalancer = Boolean.valueOf( getTagValue("useDynamicLoadBalancer", mpElement).toLowerCase() );
 			
 			CSVDelimiter = getTagValue("CSVDelimiter", mpElement).charAt(0);
+			
+			String wrappersFolder = getWrappersFolder();
+			File fil = new File( wrappersFolder );
+			if ( !fil.exists() ) fil.mkdirs();
+			
 		} catch ( Exception e ) {
 			System.out.println( e.getMessage() );
 		}

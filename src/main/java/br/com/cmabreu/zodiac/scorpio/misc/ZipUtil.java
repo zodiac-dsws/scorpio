@@ -2,6 +2,9 @@ package br.com.cmabreu.zodiac.scorpio.misc;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -50,4 +53,38 @@ public class ZipUtil {
 		}
 	    return string.toString();
 	}
+	
+	
+	public static void compressFile(String source_filepath, String destinaton_zip_filepath) throws Exception {
+		byte[] buffer = new byte[1024];
+		FileOutputStream fileOutputStream =new FileOutputStream(destinaton_zip_filepath);
+		GZIPOutputStream gzipOuputStream = new GZIPOutputStream(fileOutputStream);
+		FileInputStream fileInput = new FileInputStream(source_filepath);
+		int bytes_read;
+		while ((bytes_read = fileInput.read(buffer)) > 0) {
+			gzipOuputStream.write(buffer, 0, bytes_read);
+		}
+		fileInput.close();
+		gzipOuputStream.finish();
+		gzipOuputStream.close();
+		fileOutputStream.close();
+	}	
+	
+	
+	public static void decompressFile( String compressedFile, String decompressedFile ) throws Exception {
+		byte[] buffer = new byte[1024];
+		try {
+			FileInputStream fileIn = new FileInputStream(compressedFile);
+			GZIPInputStream gZIPInputStream = new GZIPInputStream(fileIn);
+			FileOutputStream fileOutputStream = new FileOutputStream(decompressedFile);
+			int bytes_read;
+			while ((bytes_read = gZIPInputStream.read(buffer)) > 0) {
+				fileOutputStream.write(buffer, 0, bytes_read);
+			}
+			gZIPInputStream.close();
+			fileOutputStream.close();
+		} catch (IOException ex) {
+			throw new Exception( ex.getMessage() );
+		}
+	}		
 }

@@ -1,8 +1,10 @@
 package br.com.cmabreu.zodiac.scorpio.misc;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import br.com.cmabreu.zodiac.scorpio.types.ExecutorType;
 
@@ -24,7 +26,44 @@ public class Activation implements Comparable<Activation> {
 	private String executor;
 	private ExecutorType executorType;
 	private String targetTable;
-	int instanceId;
+	private List<FileUnity> files;
+	private int instanceId;
+	private String taskId;
+	
+	public void addFile( FileUnity file ) {
+		files.add( file );
+	}
+		
+	public String getExperimentRootFolder() throws Exception {
+		File f = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath() );
+		String rootFolder =  f.getAbsolutePath();
+		rootFolder = rootFolder.substring(0, rootFolder.lastIndexOf( File.separator ) + 1).replace(File.separator, "/");
+		return rootFolder + "namespaces" + "/" + workflow + "/" + experiment ;
+	}
+	
+	public String getNamespace() {
+		String result = "";
+		try {
+			result = getExperimentRootFolder() + "/" + fragment + "/" + instanceSerial + "/" + executor;
+		} catch ( Exception e ) {
+			
+		}
+		return result; 
+	}
+	
+	public Activation() {
+		files = new ArrayList<FileUnity>();
+		UUID uuid = UUID.randomUUID();
+        taskId = uuid.toString().toUpperCase().substring(0,15);
+	}	
+	
+	public String getTaskId() {
+		return taskId;
+	}
+	
+	public List<FileUnity> getFiles() {
+		return files;
+	}
 	
 	public int getOrder() {
 		return order;

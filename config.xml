@@ -19,6 +19,7 @@
 		<firstDelayLimitSeconds>60</firstDelayLimitSeconds>
 		<CSVDelimiter>,</CSVDelimiter>
 		<useDynamicLoadBalancer>true</useDynamicLoadBalancer>
+		<clearDataAfterFinish>false</clearDataAfterFinish>
 		<hadoopConfigPath>/opt/hadoop/hadoop/etc/hadoop/</hadoopConfigPath>
 
 		<foms>d:/foms/</foms>

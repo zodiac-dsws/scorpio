@@ -134,12 +134,14 @@ public class CoreObject {
 	}
 	
 	private List<Activation> decompress( String hexCompressedInstance ) throws Exception {
-		byte[] compressedResp = ZipUtil.toByteArray( hexCompressedInstance );
-		String response = ZipUtil.decompress(compressedResp);
-		XMLParser parser = new XMLParser();
-		List<Activation> acts = parser.parseActivations( response );
-		executionQueue.addAll( acts );	
-		return acts;
+		synchronized(this) {
+			byte[] compressedResp = ZipUtil.toByteArray( hexCompressedInstance );
+			String response = ZipUtil.decompress( compressedResp );
+			XMLParser parser = new XMLParser();
+			List<Activation> acts = parser.parseActivations( response );
+			executionQueue.addAll( acts );
+			return acts;
+		}
 	}	
 	
 	private void debug( String s ) {
@@ -175,32 +177,13 @@ public class CoreObject {
 				return;
 			}
 		}
-		finishThread();
+		finishInstanceExecution();
 	}
 	
 	private void runFirst( List<Activation> acts ) {
 		for ( Activation act : acts ) {
 			if( act.getOrder() == 0 ) {
-				
 				executeActivation( act );
-				
-				/*
-				currentActivation = act;
-				found = true;
-				debug("execute first task in instance " + act.getInstanceSerial() );
-				instanceSerial = act.getInstanceSerial();
-				executionQueue.remove(act);
-
-				String wrappersFolder = configurator.getSystemProperties().getTeapotRootFolder() + "wrappers/";
-				act.setWrappersFolder(wrappersFolder);
-				
-				String newCommand = generateCommand( act );
-				act.setCommand( newCommand );
-				saveInputData( act );
-				saveXmlData( act );
-				runTask( act );
-				break;
-				*/
 			}
 		}		
 	}
@@ -232,23 +215,28 @@ public class CoreObject {
 			}
 		} catch (Exception e) {
 			result = ExecutionResult.RESULT_ERROR;
-			finishThread();
+			finishInstanceExecution();
 			e.printStackTrace();
 		}
 	}
 	
 	public void notifyFinishedByTask( int exitCode ) {
+		
+		Activation act = currentTask.getActivation();
+		debug(" > Instance: " + act.getInstanceSerial() + " | Order: " + act.getOrder() + " | Activity " + act.getExecutor() + "(" + act.getActivitySerial() + ") finished." );
+
 		if ( executionQueue.size() > 0 ) {
 			int nextAct = currentTask.getActivation().getOrder() + 1;
 			runNext( nextAct );
 		} else {
-			finishThread();
+			finishInstanceExecution();
 		}
 		
 	}
 	
-	private void finishThread() {
+	private void finishInstanceExecution() {
 		String oldInstanceSerial = instanceSerial;
+		debug("Instance " + instanceSerial + " finished.");
 		// instanceSerial = "*"; // Don't do it!! Need this to control "Finish Instance" at server side.
 		activitySerial = "*";
 		fragmentSerial = "*";

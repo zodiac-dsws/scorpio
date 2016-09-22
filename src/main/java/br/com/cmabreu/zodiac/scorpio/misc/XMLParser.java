@@ -176,6 +176,27 @@ public class XMLParser {
 				activation.setExecutor( executor );
 				activation.setExecutorType( executorType );
 				activation.setTargetTable( targetTable );
+				
+				try {
+					NodeList nFileList = mpElement.getElementsByTagName("files").item(0).getChildNodes();
+					for ( int y = 0; y < nFileList.getLength(); y++ ) {
+						if( nFileList.item(y).getNodeType() == Node.ELEMENT_NODE){
+							Element fileElement = (Element)nFileList.item(y);
+							String fileName = fileElement.getAttribute("name");
+							String table = fileElement.getAttribute("table");
+							String attribute = fileElement.getAttribute("attribute");
+							FileUnity fu = new FileUnity( fileName );
+							fu.setId( 0 );
+							fu.setAttribute(attribute);
+							fu.setSourceTable(table);
+							activation.addFile( fu );
+						} 
+					}
+					
+				} catch ( Exception e ) {
+					e.printStackTrace();
+				}
+				
 				resp.add(activation);
 				
 			} catch (Exception e){

@@ -1,5 +1,6 @@
 package br.com.cmabreu.zodiac.scorpio.services;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,16 @@ public class RelationService {
 		}
 	}	
 	
+	// Get the triad id_activity + id_experiment + id_instance given an Instance serial.
+	public UserTableEntity getTriad( String instanceSerial ) throws Exception {
+		String query = "select act.id_activity, frag.id_experiment, inst.id_instance from activities act " + 
+				"join fragments frag on frag.id_fragment = act.id_fragment " +
+				"join instances inst on inst.id_fragment = frag.id_fragment where inst.serial = '" + instanceSerial + "'";
+		List<UserTableEntity> result = new ArrayList<UserTableEntity>( genericFetchList(query) );
+		if ( result.size() > 0 ) return result.get( 0 );
+		return null;
+	}
+	
 	@SuppressWarnings("rawtypes")
 	public Set<UserTableEntity> genericFetchList(String query) throws Exception {
 		debug("generic fetch " + query );
@@ -63,5 +74,41 @@ public class RelationService {
 		Logger.getInstance().debug(this.getClass().getName(), s );
 	}	
 
+	public Set<UserTableEntity> getTableStructure(String tableName) throws Exception {
+		debug("get schema from table " + tableName );
+		if ( !rep.isOpen() ) {
+			rep.newTransaction();
+		}
+		return genericFetchList("SELECT column_name, data_type FROM information_schema.columns WHERE "
+				+ "table_schema <> 'information_schema' and "
+				+ "table_name='"+tableName+"'");
+	}
+	
+	public void executeQueryAndKeepOpen(String query) throws Exception {
+		if ( !rep.isOpen() ) {
+			newTransaction();
+		}
+		rep.executeQueryAndKeepOpen(query);
+	}
+	
+	public void commitAndClose() throws Exception {
+		try {
+			rep.commit();
+			rep.closeSession();
+		} catch ( Exception e ) {
+			rep.rollBack();
+			rep.closeSession();
+			throw e;
+		}
+	}
 
+	public void rollbackAndClose() throws Exception {
+		try {
+			rep.rollBack();
+			rep.closeSession();
+		} catch ( Exception e ) {
+			throw e;
+		}
+	}	
+	
 }
