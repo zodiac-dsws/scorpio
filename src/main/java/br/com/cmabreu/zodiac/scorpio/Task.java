@@ -31,6 +31,8 @@ import br.com.cmabreu.zodiac.scorpio.misc.Activation;
 import br.com.cmabreu.zodiac.scorpio.misc.FileUnity;
 import br.com.cmabreu.zodiac.scorpio.misc.ZipUtil;
 import br.com.cmabreu.zodiac.scorpio.services.RelationService;
+import br.com.cmabreu.zodiac.scorpio.storages.IStorage;
+import br.com.cmabreu.zodiac.scorpio.storages.LocalStorage;
 import br.com.cmabreu.zodiac.scorpio.types.ExecutorType;
 import br.com.cmabreu.zodiac.scorpio.types.TaskStatus;
 
@@ -46,6 +48,7 @@ public class Task implements Runnable {
 	private long startTimeMillis;
 	private List<String> execLog = new ArrayList<String>();	
 	private TaskStatus status = TaskStatus.STOPPED;
+	private IStorage storage;
 
 	private void debug( String s ) {
 		if ( !s.equals("")) {
@@ -262,8 +265,8 @@ public class Task implements Runnable {
 		String fileName = temp.getName();
 		String target = act.getNamespace() + "/" + "inbox" + "/" + fileName;
 		debug("providing file " + file.getName() + " for " + act.getTaskId() + " (" + act.getExecutor() + ")");
-		LocalStorage ls = new LocalStorage( act );
-		boolean result = ls.copyToLocalFS( file, target );
+		
+		boolean result = storage.copyToLocalFS( act, file, target );
 		if ( !result ) {
 			error("could not copy the file " + file.getName() );
 			throw new Exception( "could not copy the file " + file.getName() );
@@ -443,6 +446,8 @@ public class Task implements Runnable {
 		startTimeMillis = Calendar.getInstance().getTimeInMillis();
 		activation.setStartTime( Calendar.getInstance().getTime() );
 		
+		storage = new LocalStorage();
+		
 		try {
 
 			if ( activation.getExecutorType() == ExecutorType.SELECT ) {
@@ -527,7 +532,7 @@ public class Task implements Runnable {
 					String localFile = outbox + "/" + columnContent;
 					columnContent = targetPath + "/" + columnContent;
 					
-					copyFileToStorage( localFile, columnContent );
+					storage.copyToRemoteFS( localFile, columnContent );
 					
 				}
 				sb.append( prefix + columnContent );
@@ -546,12 +551,6 @@ public class Task implements Runnable {
 			importCSVData( contentLines );
 			debug("Done saving data to table " + targetTable );
 		}
-		
-	}
-	
-	private void copyFileToStorage(String localFile, String columnContent) {
-		// Don't forget to compress !!!
-		debug(" >>> Copy file " + localFile + " to " + columnContent );
 		
 	}
 
