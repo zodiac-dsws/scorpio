@@ -221,7 +221,6 @@ public class CoreObject {
 	}
 	
 	public void notifyFinishedByTask( int exitCode ) {
-		
 		Activation act = currentTask.getActivation();
 		debug(" > Instance: " + act.getInstanceSerial() + " | Order: " + act.getOrder() + " | Activity " + act.getExecutor() + "(" + act.getActivitySerial() + ") finished." );
 
@@ -236,7 +235,6 @@ public class CoreObject {
 	
 	private void finishInstanceExecution() {
 		String oldInstanceSerial = instanceSerial;
-		debug("Instance " + instanceSerial + " finished.");
 		// instanceSerial = "*"; // Don't do it!! Need this to control "Finish Instance" at server side.
 		activitySerial = "*";
 		fragmentSerial = "*";

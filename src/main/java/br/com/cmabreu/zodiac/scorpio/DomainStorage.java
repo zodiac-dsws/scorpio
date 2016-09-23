@@ -21,16 +21,25 @@ public class DomainStorage {
 		domains.add( domain );
 	}
 	
+	private void debug( String s ) {
+		Logger.getInstance().debug( this.getClass().getName(), s );
+	}
+
 	private DomainStorage() {
 		domains = new ArrayList<Domain>();
 	}
-
 	
-	public synchronized void setDomains(List<Domain> newDomains) {
+	public void setDomains(List<Domain> newDomains) {
 		domains = newDomains;
 	}
 
-	public synchronized Domain getDomain( String domainName ) {
+	public Domain getDomain( String domainName ) {
+		
+		if ( domains.size() == 0 ) {
+			debug("No domains found.");
+			return null;
+		}
+		
 		for ( Domain domain : domains  ) {
 			if ( domain.getDomainName().equals( domainName ) ) {
 				return domain;
@@ -40,6 +49,12 @@ public class DomainStorage {
 	}
 
 	public boolean domainExists( String domainName ) {
+		
+		if ( domains.size() == 0 ) {
+			debug("No domains found.");
+			return false;
+		}
+		
 		for ( Domain domain : domains  ) {
 			if ( domain.getDomainName().equals( domainName ) ) {
 				return true;
@@ -49,6 +64,12 @@ public class DomainStorage {
 	}
 
 	public boolean isColumnADomain( String columnName ) {
+		
+		if ( domains.size() == 0 ) {
+			debug("No domains found.");
+			return false;
+		}
+		
 		for ( Domain domain : domains  ) {
 			if ( domain.getDomainName().contains( "." + columnName ) ) {
 				return true;

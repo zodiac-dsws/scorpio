@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
@@ -30,8 +32,7 @@ import br.com.cmabreu.zodiac.scorpio.misc.FileUnity;
 import br.com.cmabreu.zodiac.scorpio.misc.ZipUtil;
 import br.com.cmabreu.zodiac.scorpio.services.RelationService;
 import br.com.cmabreu.zodiac.scorpio.types.ExecutorType;
-
-
+import br.com.cmabreu.zodiac.scorpio.types.TaskStatus;
 
 public class Task implements Runnable {
 	private List<String> sourceData;
@@ -44,6 +45,7 @@ public class Task implements Runnable {
 	private Activation activation;
 	private long startTimeMillis;
 	private List<String> execLog = new ArrayList<String>();	
+	private TaskStatus status = TaskStatus.STOPPED;
 
 	private void debug( String s ) {
 		if ( !s.equals("")) {
@@ -110,8 +112,7 @@ public class Task implements Runnable {
 		    BufferedWriter bw = new BufferedWriter(fw);
 		    PrintWriter writer = new PrintWriter(bw);
 		    
-			writer.println("--------------------------------------------------------");
-			writer.println("Start Time         : " + activation.getStartTime() );
+			writer.println("-------------------------------------------------------------------");			
 			writer.println("Workflow           : " + activation.getWorkflow() );
 			writer.println("Experiment         : " + activation.getExperiment() );
 			writer.println("Fragment           : " + activation.getFragment() );
@@ -121,12 +122,25 @@ public class Task implements Runnable {
 			writer.println("Executor           : " + activation.getExecutor() );
 			writer.println("Executor Type      : " + activation.getExecutorType() );
 			writer.println("Target Table       : " + activation.getTargetTable() );
-			writer.println("--------------------------------------------------------");
+			writer.println("Start Time         : " + activation.getStartTime() );
+			writer.println("End Time           : " + activation.getEndTime() );
+			writer.println("-------------------------------------------------------------------");			
 			writer.println( activation.getXmlOriginalData() );
-			writer.println("--------------------------------------------------------");
+			writer.println("-------------------------------------------------------------------");			
 			writer.println("");
 			writer.println("");
 		    
+			writer.println("----------------------- RESULT ------------------------------------");
+			for ( String s : getExecLog() ) {
+				writer.println("     " + s );
+			}
+			writer.println(""); writer.println("");
+			for ( String s : getConsole() ) {
+				writer.println("     " + s );
+			}
+			writer.println("-------------------------------------------------------------------");			
+			
+			
 			writer.close();
 		    
 		} catch ( Exception e ) {
@@ -134,6 +148,72 @@ public class Task implements Runnable {
 		}
 		
 	}
+	
+	public TaskStatus getTaskStatus() {
+		return this.status;
+	}	
+	
+	
+	private void runTask() {
+		Process process = null;
+		status = TaskStatus.RUNNING;
+		try {
+			debug("running external wrapper " + activation.getCommand() );
+
+			process = Runtime.getRuntime().exec( activation.getCommand() );
+			
+			/*
+        	List<String> args = new ArrayList<String>();
+        	args.add("/bin/sh");
+        	args.add("-c");
+        	args.add( activation.getCommand() );			
+        	process = new ProcessBuilder( args ).start();
+        	*/
+			
+			/*
+			PID = 0;
+			if( process.getClass().getName().equals("java.lang.UNIXProcess") ) {
+				try {
+					Field f = process.getClass().getDeclaredField("pid");
+					f.setAccessible(true);
+					PID = f.getInt( process );
+				} catch (Throwable e) {
+
+				}
+			}
+			*/
+
+			InputStream in = process.getInputStream(); 
+			BufferedReader br = new BufferedReader( new InputStreamReader(in) );
+			String line = null;
+			
+			InputStream es = process.getErrorStream();
+			BufferedReader errorReader = new BufferedReader(  new InputStreamReader(es) );
+			while ( (line = errorReader.readLine() ) != null) {
+				console.add( line );
+				error( line );
+			}	
+			errorReader.close();
+
+			while( ( line=br.readLine() )!=null ) {
+				console.add( line );
+				debug( "[" + activation.getActivitySerial() + "] " + activation.getExecutor() + " > " + line );
+			}  
+			br.close();
+
+			exitCode = process.waitFor();
+
+
+		} catch ( Exception ex ){
+			error( ex.getMessage() );
+			for ( StackTraceElement ste : ex.getStackTrace() ) {
+				error( ste.toString() );
+			}
+		}
+		status = TaskStatus.FINISHED;
+		debug("external wrapper finished.");
+	}
+	
 	
 	/**
 	 * BLOCKING
@@ -145,9 +225,7 @@ public class Task implements Runnable {
 		saveInputData( activation );
 		saveXmlData( activation );		
 		activation.setCommand( generateCommand( activation ) );
-		
-		
-		dump();
+		runTask();
 	}
 
 	/**
@@ -157,9 +235,17 @@ public class Task implements Runnable {
 	 * 
 	 */
 	public void executeSqlCommand( String command ) throws Exception {
-		RelationService rs = new RelationService();
-		rs.executeQuery( command );
-		dump();
+		try {
+			RelationService rs = new RelationService();
+			rs.executeQuery( command );
+			debug( command );
+		} catch ( Exception e ) {
+			for ( StackTraceElement ste : e.getStackTrace() ) {
+				execLog.add( e.getMessage() );
+				execLog.add( ste.getClassName() + " " + ste.getLineNumber() + ": " + ste.getMethodName()  );
+			}
+			
+		}
 	}
 	
 	private void createWorkFolder( Activation act ) throws Exception {
@@ -297,7 +383,7 @@ public class Task implements Runnable {
 	private String generateCommand( Activation activation ) throws Exception {
 		String command = activation.getCommand();
 		
-		String classPathParam = ""; // <---- Really ?
+		String classPathParam = ""; // <----  -Xmx -Xms etc ... 
 		
 		String workFolder = activation.getNamespace();
 		String wrappersFolder = Configurator.getInstance().getWrappersFolder();
@@ -370,12 +456,18 @@ public class Task implements Runnable {
 		}
 		
 		storeData();		
-		
 		activation.setEndTime( Calendar.getInstance().getTime() );
+		
+		dump();
 		owner.notifyFinishedByTask( exitCode );
 	}
 
 	private void sanitize( ) throws Exception {
+		
+		debug("deleting work folder");
+		FileUtils.deleteDirectory( new File( getActivation().getNamespace() ) ); 
+		
+		
 		/*
 		if ( Configurator.getInstance().getClearDataAfterFinish() ) {
 			debug("deleting work folder");
@@ -384,11 +476,12 @@ public class Task implements Runnable {
 		*/
 	}		
 	
-	
 	private void importCsvFile() throws Exception {
 		String taskFolder = activation.getNamespace();
 		String csvFileName = taskFolder + "/" + "sagi_output.txt";
 		String outbox = taskFolder + "/" + "outbox";
+		
+		DomainStorage ds = DomainStorage.getInstance();
 		
 		File csvFile = new File( csvFileName );
 		
@@ -422,7 +515,10 @@ public class Task implements Runnable {
 				String columnName = headerLine.get(x); 							
 				// Get the column content ( the data )
 				String columnContent = csvRecord.get(x).replace("'", "`");
-				if ( DomainStorage.getInstance().domainExists( targetTable + "." + columnName ) ) {
+				String domainName =  targetTable + "." + columnName;
+				
+				if ( ds.domainExists( domainName ) ) {
+					
 					// This column is a file. The file name is in columnContent.
 					// Just add the full target path to the file name before store it.
 					String targetPath = activation.getWorkflow() + "/" + 
@@ -446,7 +542,9 @@ public class Task implements Runnable {
 		
 		parser.close();
 		if ( contentLines.size() > 1 ) {
-			
+			debug("Inserting " + contentLines.size() + " lines in table " + targetTable + "...");
+			importCSVData( contentLines );
+			debug("Done saving data to table " + targetTable );
 		}
 		
 	}
@@ -463,20 +561,20 @@ public class Task implements Runnable {
 
 		
 		if ( !validateProduct( ) ) {
-			error( "Activity " + actId + " did not produce the CSV file sagi_out. No data to store." );
+			error( "Activity " + actId + " did not produce the CSV output file. No data to store." );
 		} else {
 			debug("product is valid.");
 			try {
 				importCsvFile( );
 			} catch ( Exception e ) {
-				e.printStackTrace();
+				error( e.getMessage() );
 			}
 		}		
 		
 		try {
 			sanitize();
 		} catch ( Exception e ) {
-			//
+			error( e.getMessage() );
 		}
 	}	
 	
@@ -490,11 +588,11 @@ public class Task implements Runnable {
 		try {
 			File file = new File(sagiOutput);
 			if( !file.exists() ) { 
-				debug( actId + ": output CSV data file sagi_output.txt not found");
+				debug( actId + ": output CSV data file " + sagiOutput + " not found");
 				return false;
 			} 
 			if ( file.length() == 0 ) { 
-				debug( actId + ": output CSV data file sagi_output.txt is empty");
+				debug( actId + ": output CSV data file " + sagiOutput + " is empty");
 				return false;
 			} else {
 				debug( actId + ": sagi_output.txt have " + file.length() + " bytes.");
@@ -502,13 +600,13 @@ public class Task implements Runnable {
 			BufferedReader br = new BufferedReader( new FileReader( file ) );
 			String header = br.readLine(); 					
 			if ( header == null ) { 
-				debug( actId + ": output CSV data file sagi_output.txt have no header line");
+				debug( actId + ": output CSV data file " + sagiOutput + " have no header line");
 				br.close();
 				return false;
 			} 
 			String line = br.readLine(); 					
 			if ( line == null ) { 
-				debug( actId + ": output CSV data file sagi_output.txt have no data line");
+				debug( actId + ": output CSV data file " + sagiOutput + " have no data line");
 				br.close();
 				return false;
 			} 
@@ -536,7 +634,7 @@ public class Task implements Runnable {
 	}
 
 	
-	public void importCSVData( List<String> contentLines ) throws Exception {
+	private void importCSVData( List<String> contentLines ) throws Exception {
 		String sql = "";
 		RelationService rs = new RelationService();
 		UserTableEntity triad = rs.getTriad( activation.getInstanceSerial() );
@@ -605,9 +703,12 @@ public class Task implements Runnable {
 			sql = "insert into " + targetTable + "("+columns.substring(0, columns.length()-1).toLowerCase()+") values ("+ idExperiment + 
 					"," + idActivity + "," + idInstance + "," + values + ");";
 			
+			debug(" > " + sql );
+			
 			try {
 				rs.executeQueryAndKeepOpen(sql);
 			} catch ( Exception e ) {
+				error( e.getMessage() );
 				rs.rollbackAndClose();
 				throw e;
 			}

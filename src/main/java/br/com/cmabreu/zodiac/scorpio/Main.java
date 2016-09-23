@@ -1,10 +1,13 @@
 package br.com.cmabreu.zodiac.scorpio;
 
 import java.io.File;
+import java.util.List;
 
 import br.com.cmabreu.zodiac.federation.federates.ScorpioFederate;
 import br.com.cmabreu.zodiac.scorpio.config.Configurator;
+import br.com.cmabreu.zodiac.scorpio.entity.Domain;
 import br.com.cmabreu.zodiac.scorpio.infra.ConnFactory;
+import br.com.cmabreu.zodiac.scorpio.repository.RelationRepository;
 
 public class Main {
 
@@ -48,6 +51,16 @@ public class Main {
 			
     		ConnFactory.setCredentials(user, passwd, database);			
 			
+    		debug("Loading Domains...");
+    		try {
+    			RelationRepository rr = new RelationRepository();
+    			List<Domain> domains = rr.getDomains();
+    			DomainStorage.getInstance().setDomains( domains );
+    			debug("Done. Found " + domains.size() + " domains.");
+    		} catch ( Exception ignored ) { 
+    			debug("No Domains found.");
+    		}		    		
+    		
 			ScorpioFederate tf = ScorpioFederate.getInstance(); 
 			tf.startFederate();
 			
