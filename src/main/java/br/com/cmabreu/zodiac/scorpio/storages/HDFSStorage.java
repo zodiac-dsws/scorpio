@@ -18,6 +18,10 @@ public class HDFSStorage implements IStorage {
 		
 	}
 
+	@Override
+	public void copyToNextActivity(String localFile, String targetFile) {
+		
+	}
 	
 	private void debug( String s ) {
 		Logger.getInstance().debug(this.getClass().getName(), s );

@@ -17,11 +17,15 @@ public class LocalStorage implements IStorage {
 		debug(" >>> Copy file " + localFile + " to " + targetFile );
 		
 	}
-
 	
 	private void debug( String s ) {
 		Logger.getInstance().debug(this.getClass().getName(), s );
 	}	
+	
+	@Override
+	public void copyToNextActivity(String localFile, String targetFile) {
+		
+	}
 	
 	
 }
