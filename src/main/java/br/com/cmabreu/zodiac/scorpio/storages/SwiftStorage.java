@@ -5,6 +5,8 @@ import br.com.cmabreu.zodiac.scorpio.Logger;
 import br.com.cmabreu.zodiac.scorpio.misc.Activation;
 import br.com.cmabreu.zodiac.scorpio.misc.FileUnity;
 
+// http://jclouds.apache.org/guides/openstack/#swift
+
 public class SwiftStorage implements IStorage {
 
 	@Override
